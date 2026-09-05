@@ -1,208 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KLIA Terminal 1 - Real-Time Flight Board</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-</head>
-<body class="bg-slate-950 text-slate-100 min-h-screen font-sans">
+const API_URL = 'http://localhost:4000/api/live-flights';
 
-  <!-- Header -->
-  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-50">
-    <div class="max-w-[1700px] mx-auto px-6 py-4 flex flex-wrap items-center justify-between gap-4">
-      <div class="flex items-center space-x-3">
-        <div class="bg-amber-500 p-2.5 rounded-lg text-slate-950">
-          <i class="fa-solid font-bold text-xl fa-plane"></i>
-        </div>
-        <div>
-          <h1 class="text-xl font-bold tracking-tight text-white">KLIA Terminal 1</h1>
-          <p class="text-xs text-amber-400 font-mono tracking-wider">REAL-TIME FLIGHT INFORMATION DISPLAY</p>
-        </div>
-      </div>
+async function fetchAllData() {
+  const icon = document.getElementById('refresh-icon');
+  const banner = document.getElementById('error-banner');
+  if (icon) icon.classList.add('animate-spin');
 
-      <!-- Controls -->
-      <div class="flex items-center space-x-4">
-        <div class="text-xs text-slate-300 font-mono bg-slate-800 px-3.5 py-2 rounded-lg border border-slate-700 flex items-center gap-2.5">
-          <span class="relative flex h-2.5 w-2.5">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-          </span>
-          <span>Refresh in <span id="timer" class="text-amber-400 font-bold">5</span>s</span>
-          <i class="fa-solid fa-arrows-rotate text-slate-400" id="refresh-icon"></i>
-        </div>
+  try {
+    const res = await fetch(API_URL);
+    if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
+    
+    const json = await res.json();
 
-        <div class="w-72 relative">
-          <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-sm"></i>
-          <input type="text" id="searchInput" oninput="filterBothTables()" placeholder="Search flight or city..." 
-            class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-sm pl-9 pr-3 py-1.5 rounded-lg focus:outline-none focus:border-amber-500 transition-colors">
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- Error Alert Banner -->
-  <div id="error-banner" class="hidden bg-rose-950/80 border-b border-rose-800/60 text-rose-300 text-xs text-center py-2 px-4">
-    <i class="fa-solid fa-triangle-exclamation mr-2"></i> Unstable network connection to API server. Retrying...
-  </div>
-
-  <!-- Dual Column Grid -->
-  <main class="max-w-[1700px] mx-auto px-6 py-6">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-      <!-- LEFT COLUMN: DEPARTURES -->
-      <section class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
-        <div class="bg-amber-500/10 border-b border-amber-500/20 px-6 py-3.5 flex justify-between items-center">
-          <h2 class="text-amber-400 font-bold text-base flex items-center gap-2">
-            <i class="fa-solid fa-plane-departure"></i> DEPARTURES
-          </h2>
-          <span id="dep-count" class="text-xs font-mono bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded">0 Flights</span>
-        </div>
-
-        <div class="overflow-x-auto flex-1 max-h-[75vh]">
-          <table class="w-full text-left border-collapse">
-            <thead class="sticky top-0 bg-slate-950/95 text-slate-400 text-xs font-mono uppercase border-b border-slate-800">
-              <tr>
-                <th class="py-3 px-4">Time</th>
-                <th class="py-3 px-4">Destination</th>
-                <th class="py-3 px-4">Flight</th>
-                <th class="py-3 px-4">Gate</th>
-                <th class="py-3 px-4">Status</th>
-              </tr>
-            </thead>
-            <tbody id="departuresBody" class="divide-y divide-slate-800/60 text-xs font-mono">
-              <tr><td colspan="5" class="py-12 text-center text-slate-500"><i class="fa-solid fa-spinner fa-spin text-amber-500 text-xl mb-2"></i><p>Syncing Live Departures...</p></td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- RIGHT COLUMN: ARRIVALS -->
-      <section class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
-        <div class="bg-cyan-500/10 border-b border-cyan-500/20 px-6 py-3.5 flex justify-between items-center">
-          <h2 class="text-cyan-400 font-bold text-base flex items-center gap-2">
-            <i class="fa-solid fa-plane-arrival"></i> ARRIVALS
-          </h2>
-          <span id="arr-count" class="text-xs font-mono bg-cyan-500/20 text-cyan-300 px-2.5 py-1 rounded">0 Flights</span>
-        </div>
-
-        <div class="overflow-x-auto flex-1 max-h-[75vh]">
-          <table class="w-full text-left border-collapse">
-            <thead class="sticky top-0 bg-slate-950/95 text-slate-400 text-xs font-mono uppercase border-b border-slate-800">
-              <tr>
-                <th class="py-3 px-4">Time</th>
-                <th class="py-3 px-4">Origin</th>
-                <th class="py-3 px-4">Flight</th>
-                <th class="py-3 px-4">Belt</th>
-                <th class="py-3 px-4">Status</th>
-              </tr>
-            </thead>
-            <tbody id="arrivalsBody" class="divide-y divide-slate-800/60 text-xs font-mono">
-              <tr><td colspan="5" class="py-12 text-center text-slate-500"><i class="fa-solid fa-spinner fa-spin text-cyan-500 text-xl mb-2"></i><p>Syncing Live Arrivals...</p></td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-    </div>
-  </main>
-
-  <script>
-    let rawDepartures = [];
-    let rawArrivals = [];
-    let countdown = 5;
-
-    async function fetchAllData() {
-      const icon = document.getElementById('refresh-icon');
-      const banner = document.getElementById('error-banner');
-      icon.classList.add('animate-spin');
-
-      try {
-        const res = await fetch('/api/live-flights');
-        if (!res.ok) throw new Error('API offline');
-        const json = await res.json();
-
-        if (json.success) {
-          banner.classList.add('hidden');
-          rawDepartures = json.data.departures || [];
-          rawArrivals = json.data.arrivals || [];
-          filterBothTables();
-        }
-      } catch (e) {
-        banner.classList.remove('hidden');
-      } finally {
-        setTimeout(() => icon.classList.remove('animate-spin'), 500);
-      }
+    if (json.success) {
+      if (banner) banner.classList.add('hidden');
+      rawDepartures = json.data.departures || [];
+      rawArrivals = json.data.arrivals || [];
+      filterBothTables();
     }
-
-    function renderTable(elementId, items) {
-      const tbody = document.getElementById(elementId);
-      if (!items || items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-500">No active flight entries found</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = items.map(item => {
-        let badge = 'bg-slate-800 text-slate-300';
-        const st = (item.status || '').toLowerCase();
-
-        if (st.includes('departed') || st.includes('landed') || st.includes('arrived')) {
-          badge = 'bg-emerald-950/80 text-emerald-400 border border-emerald-800/50';
-        } else if (st.includes('delay') || st.includes('cancelled')) {
-          badge = 'bg-rose-950/80 text-rose-400 border border-rose-800/50';
-        } else if (st.includes('boarding') || st.includes('open') || st.includes('final call')) {
-          badge = 'bg-amber-950/80 text-amber-400 border border-amber-800/50 animate-pulse';
-        }
-
-        return `
-          <tr class="hover:bg-slate-800/40 transition-colors">
-            <td class="py-3 px-4 text-amber-400 font-bold">${item.time || '--:--'}</td>
-            <td class="py-3 px-4 font-semibold text-white">${item.location || 'N/A'}</td>
-            <td class="py-3 px-4 text-slate-300">${item.flight || 'N/A'}</td>
-            <td class="py-3 px-4 text-slate-400">${item.gateBelt || '-'}</td>
-            <td class="py-3 px-4">
-              <span class="px-2 py-0.5 text-[10px] rounded font-sans font-medium uppercase tracking-wider ${badge}">
-                ${item.status || 'Scheduled'}
-              </span>
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    function filterBothTables() {
-      const q = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
-      
-      const filterFn = (f) => {
-        if (!q) return true;
-        return (f.flight || '').toLowerCase().includes(q) ||
-               (f.location || '').toLowerCase().includes(q) ||
-               (f.status || '').toLowerCase().includes(q);
-      };
-
-      const filteredDep = rawDepartures.filter(filterFn);
-      const filteredArr = rawArrivals.filter(filterFn);
-
-      document.getElementById('dep-count').innerText = `${filteredDep.length} Flights`;
-      document.getElementById('arr-count').innerText = `${filteredArr.length} Flights`;
-
-      renderTable('departuresBody', filteredDep);
-      renderTable('arrivalsBody', filteredArr);
-    }
-
-    // 5-Second Interval Loop
-    setInterval(() => {
-      countdown--;
-      document.getElementById('timer').innerText = countdown;
-      if (countdown <= 0) {
-        countdown = 5;
-        fetchAllData();
-      }
-    }, 1000);
-
-    // Initial Execute
-    fetchAllData();
-  </script>
-</body>
-</html>
+  } catch (e) {
+    console.error('Fetch error:', e);
+    if (banner) banner.classList.remove('hidden');
+  } finally {
+    if (icon) setTimeout(() => icon.classList.remove('animate-spin'), 500);
+  }
+}

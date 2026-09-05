@@ -8,101 +8,164 @@ const PORT = process.env.PORT || 4000;
 app.use(cors());
 app.use(express.static('public'));
 
-const TARGET_URL = 'https://www.malaysiaairports.com.my/en/klia1/flight-information';
+const DEPARTURES_URL = 'https://www.malaysiaairports.com.my/en/klia1/flight-information/departures';
+const ARRIVALS_URL = 'https://www.malaysiaairports.com.my/en/klia1/flight-information/arrivals';
 
-// In-memory data store
 let flightStore = {
   departures: [],
   arrivals: [],
   lastUpdated: null,
-  isFetching: false,
-  errorCount: 0
+  isFetching: false
 };
 
 /**
- * Scrapes KLIA1 departures and arrivals cleanly
+ * Scrapes a specific KLIA1 sub-page (departures or arrivals)
  */
-async function scrapeKLIA1() {
+async function scrapeSubPage(browser, targetUrl, flightType) {
+  const context = await browser.newContext({
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+  });
+  
+  const page = await context.newPage();
+  let results = [];
+
+  // 1. Intercept JSON API calls if background fetch occurs
+  page.on('response', async (response) => {
+    const url = response.url();
+    if (url.includes('flight') || url.includes('api') || url.includes('json')) {
+      try {
+        const json = await response.json();
+        const list = Array.isArray(json) ? json : (json.data || json.flights || []);
+        if (list.length > 0) {
+          results = list.map(item => ({
+            time: item.time || item.scheduled_time || item.time_scheduled || '--:--',
+            location: item.location || item.destination || item.origin || 'N/A',
+            flight: item.flight_no || item.flight || item.code || 'N/A',
+            status: item.status || item.flight_status || 'Scheduled',
+            gateBelt: item.gate || item.belt || item.counter || '-',
+            type: flightType
+          }));
+        }
+      } catch (e) {
+        // Non-JSON payload, ignore
+      }
+    }
+  });
+
+  try {
+    await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await page.waitForTimeout(3000); // Allow dynamic cards to render
+
+    // 2. Fallback to extracting card elements directly from the DOM
+    if (results.length === 0) {
+      results = await page.evaluate((type) => {
+        // Collect card containers or fallback text blocks
+        const blocks = Array.from(document.querySelectorAll('div, tr, article')).filter(el => {
+          const text = el.innerText || '';
+          // Flight code pattern (e.g. MH 0020, OD 0191, KL 0810)
+          return /\b[A-Z0-9]{2}\s?\d{3,4}\b/.test(text) && text.length < 300 && text.length > 15;
+        });
+
+        const seenFlights = new Set();
+        const parsed = [];
+
+        for (const block of blocks) {
+          const text = block.innerText.trim();
+          const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+
+          const flightMatch = text.match(/\b([A-Z0-9]{2}\s?\d{3,4})\b/);
+          const timeMatch = text.match(/\b(\d{2}:\d{2})\b/);
+
+          if (!flightMatch) continue;
+
+          const flightCode = flightMatch[1];
+          if (seenFlights.has(flightCode)) continue; // Avoid duplicate nested card elements
+
+          seenFlights.add(flightCode);
+
+          let location = 'N/A';
+          let status = 'Scheduled';
+          let gateBelt = '-';
+
+          for (const line of lines) {
+            if (/Gate|Counter|Belt|Carousel/i.test(line)) {
+              gateBelt = line;
+            } else if (/Depart|Landed|Arrived|Boarding|Delayed|Cancelled|Scheduled|Flight Depart/i.test(line)) {
+              status = line;
+            } else if (line.length > 3 && !line.includes(flightCode) && !/\d{2}:\d{2}/.test(line) && location === 'N/A') {
+              location = line;
+            }
+          }
+
+          parsed.push({
+            time: timeMatch ? timeMatch[1] : '--:--',
+            location,
+            flight: flightCode,
+            status,
+            gateBelt,
+            type
+          });
+        }
+
+        return parsed;
+      }, flightType);
+    }
+
+  } catch (err) {
+    console.error(`[ERROR] Scraping ${flightType}: ${err.message}`);
+  } finally {
+    await context.close();
+  }
+
+  return results;
+}
+
+/**
+ * Main Sync Runner
+ */
+async function syncAllFlights() {
   if (flightStore.isFetching) return;
   flightStore.isFetching = true;
 
-  console.log(`[${new Date().toLocaleTimeString()}] Fetching live flight data from KLIA1...`);
-  
+  console.log(`[${new Date().toLocaleTimeString()}] Fetching live KLIA1 data...`);
+
   let browser = null;
   try {
-    browser = await chromium.launch({ 
+    browser = await chromium.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'] 
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
-    
-    const context = await browser.newContext({
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
-    });
-    
-    const page = await context.newPage();
-    await page.goto(TARGET_URL, { waitUntil: 'domcontentloaded', timeout: 45000 });
-    
-    // Allow dynamic UI components to stabilize
-    await page.waitForTimeout(3000);
 
-    // Helper parser executed inside browser context
-    const extractTableRows = async (type) => {
-      return await page.evaluate((flightType) => {
-        const rows = Array.from(document.querySelectorAll('table tbody tr'));
-        return rows.map(row => {
-          const cells = row.querySelectorAll('td');
-          if (cells.length < 4) return null;
+    // Execute scraping in parallel
+    const [departures, arrivals] = await Promise.all([
+      scrapeSubPage(browser, DEPARTURES_URL, 'departures'),
+      scrapeSubPage(browser, ARRIVALS_URL, 'arrivals')
+    ]);
 
-          const textOf = (idx) => (cells[idx] ? cells[idx].innerText.trim() : '');
-
-          return {
-            time: textOf(0) || '--:--',
-            location: textOf(1) || 'N/A',
-            flight: textOf(2) || 'N/A',
-            status: textOf(3) || 'Scheduled',
-            gateBelt: textOf(4) || '-',
-            type: flightType
-          };
-        }).filter(item => item !== null && item.flight !== 'N/A');
-      }, type);
-    };
-
-    // 1. Parse Departures
-    const departures = await extractTableRows('departures');
-
-    // 2. Switch to Arrivals Tab & Parse
-    let arrivals = [];
-    const arrivalTab = page.locator('text=Arrivals').first();
-    if (await arrivalTab.isVisible()) {
-      await arrivalTab.click();
-      await page.waitForTimeout(2000);
-      arrivals = await extractTableRows('arrivals');
+    if (departures.length > 0 || arrivals.length > 0) {
+      flightStore.departures = departures;
+      flightStore.arrivals = arrivals;
+      flightStore.lastUpdated = new Date().toISOString();
+      console.log(`[SYNC SUCCESS] Retrieved ${departures.length} Departures and ${arrivals.length} Arrivals.`);
+    } else {
+      console.warn(`[SYNC WARNING] No records found. Retrying in next cycle...`);
     }
 
-    // Update global store
-    flightStore.departures = departures;
-    flightStore.arrivals = arrivals;
-    flightStore.lastUpdated = new Date().toISOString();
-    flightStore.errorCount = 0;
-
-    console.log(`[SUCCESS] Synced ${departures.length} Departures & ${arrivals.length} Arrivals`);
-
   } catch (err) {
-    flightStore.errorCount++;
-    console.error(`[SCRAPE ERROR] (${flightStore.errorCount}): ${err.message}`);
+    console.error(`[SYNC ERROR] ${err.message}`);
   } finally {
     if (browser) await browser.close();
     flightStore.isFetching = false;
   }
 }
 
-// Initial fetch on server start
-scrapeKLIA1();
+// Initial Sync
+syncAllFlights();
 
-// Run background scrape every 30 seconds
-setInterval(scrapeKLIA1, 30000);
+// Sync every 30 seconds in background
+setInterval(syncAllFlights, 30000);
 
-// Fast REST Endpoint (<10ms latency for 5s frontend polling)
+// Fast API endpoint for 5-second frontend polling
 app.get('/api/live-flights', (req, res) => {
   res.json({
     success: true,
@@ -115,8 +178,5 @@ app.get('/api/live-flights', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`===================================================`);
-  console.log(`  KLIA1 Live Flight Server running on port ${PORT}`);
-  console.log(`  Dashboard: http://localhost:${PORT}`);
-  console.log(`===================================================`);
+  console.log(`KLIA1 Live Flight API running on http://localhost:${PORT}`);
 });

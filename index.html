@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KLIA Terminal 1 - Real-Time Flight Board</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans">
+
+  <!-- Header -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="bg-amber-500 p-2.5 rounded-lg text-slate-950">
+          <i class="fa-solid font-bold text-xl fa-plane-departure"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-white">KLIA Terminal 1</h1>
+          <p class="text-xs text-amber-400 font-mono tracking-wider">LIVE FLIGHT INFORMATION DISPLAY</p>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="flex items-center space-x-4">
+        <!-- Tab Controls -->
+        <div class="bg-slate-800 p-1 rounded-xl flex">
+          <button id="btn-departures" onclick="switchType('departures')" class="px-4 py-1.5 text-sm font-semibold rounded-lg bg-amber-500 text-slate-950 transition-all">
+            <i class="fa-solid fa-plane-departure mr-1.5"></i> Departures
+          </button>
+          <button id="btn-arrivals" onclick="switchType('arrivals')" class="px-4 py-1.5 text-sm font-semibold rounded-lg text-slate-400 hover:text-white transition-all">
+            <i class="fa-solid fa-plane-arrival mr-1.5"></i> Arrivals
+          </button>
+        </div>
+
+        <!-- Refresh Countdown -->
+        <div class="text-xs text-slate-400 font-mono bg-slate-900 px-3 py-2 rounded-lg border border-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-arrows-rotate text-amber-500 animate-spin" id="spin-icon"></i>
+          <span>Auto-refresh in <span id="timer" class="text-white font-bold">30</span>s</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-4 py-6">
+    
+    <!-- Search & Filters -->
+    <div class="flex flex-col sm:flex-row gap-4 mb-6">
+      <div class="relative flex-1">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-500"></i>
+        <input type="text" id="searchInput" onkeyup="filterFlights()" placeholder="Search flight no, airline, or destination..." 
+          class="w-full bg-slate-900 border border-slate-800 text-slate-200 pl-10 pr-4 py-2.5 rounded-xl focus:outline-none focus:border-amber-500 transition-colors">
+      </div>
+    </div>
+
+    <!-- Flight Table -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-950/60 text-slate-400 text-xs font-mono uppercase border-b border-slate-800">
+              <th class="py-4 px-6">Scheduled</th>
+              <th class="py-4 px-6" id="col-location">Destination</th>
+              <th class="py-4 px-6">Flight / Airline</th>
+              <th class="py-4 px-6">Gate / Belt</th>
+              <th class="py-4 px-6">Status</th>
+            </tr>
+          </thead>
+          <tbody id="flightTableBody" class="divide-y divide-slate-800/60 text-sm font-mono">
+            <!-- Loading skeleton -->
+            <tr>
+              <td colspan="5" class="py-12 text-center text-slate-500">
+                <i class="fa-solid fa-circle-notch fa-spin text-2xl text-amber-500 mb-2"></i>
+                <p>Fetching real-time data from KLIA1...</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let currentType = 'departures';
+    let rawFlights = [];
+    let countdown = 30;
+
+    async function fetchFlights() {
+      document.getElementById('spin-icon').classList.add('animate-spin');
+      try {
+        const response = await fetch(`/api/flights?type=${currentType}`);
+        const result = await response.json();
+        
+        if (result.success) {
+          rawFlights = result.data;
+          renderFlights(rawFlights);
+        }
+      } catch (err) {
+        console.error('Fetch error:', err);
+      } finally {
+        document.getElementById('spin-icon').classList.remove('animate-spin');
+      }
+    }
+
+    function renderFlights(data) {
+      const tbody = document.getElementById('flightTableBody');
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-500">No flights found matching criteria.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = data.map(item => {
+        let badgeClass = 'bg-slate-800 text-slate-300';
+        const statusLower = item.status.toLowerCase();
+
+        if (statusLower.includes('departed') || statusLower.includes('landed') || statusLower.includes('arrived')) {
+          badgeClass = 'bg-emerald-950/80 text-emerald-400 border border-emerald-800/50';
+        } else if (statusLower.includes('delay')) {
+          badgeClass = 'bg-rose-950/80 text-rose-400 border border-rose-800/50';
+        } else if (statusLower.includes('boarding') || statusLower.includes('gate open')) {
+          badgeClass = 'bg-amber-950/80 text-amber-400 border border-amber-800/50 animate-pulse';
+        }
+
+        return `
+          <tr class="hover:bg-slate-800/40 transition-colors">
+            <td class="py-4 px-6 text-amber-400 font-bold">${item.time}</td>
+            <td class="py-4 px-6 font-semibold text-white">${item.location}</td>
+            <td class="py-4 px-6 text-slate-300">${item.flight}</td>
+            <td class="py-4 px-6 text-slate-400">${item.gateBelt || '-'}</td>
+            <td class="py-4 px-6">
+              <span class="px-2.5 py-1 text-xs rounded-md font-sans font-medium uppercase tracking-wider ${badgeClass}">
+                ${item.status}
+              </span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterFlights() {
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = rawFlights.filter(f => 
+        f.flight.toLowerCase().includes(q) ||
+        f.location.toLowerCase().includes(q) ||
+        f.status.toLowerCase().includes(q)
+      );
+      renderFlights(filtered);
+    }
+
+    function switchType(type) {
+      currentType = type;
+      document.getElementById('col-location').innerText = type === 'departures' ? 'Destination' : 'Origin';
+      
+      const depBtn = document.getElementById('btn-departures');
+      const arrBtn = document.getElementById('btn-arrivals');
+
+      if (type === 'departures') {
+        depBtn.className = 'px-4 py-1.5 text-sm font-semibold rounded-lg bg-amber-500 text-slate-950 transition-all';
+        arrBtn.className = 'px-4 py-1.5 text-sm font-semibold rounded-lg text-slate-400 hover:text-white transition-all';
+      } else {
+        arrBtn.className = 'px-4 py-1.5 text-sm font-semibold rounded-lg bg-amber-500 text-slate-950 transition-all';
+        depBtn.className = 'px-4 py-1.5 text-sm font-semibold rounded-lg text-slate-400 hover:text-white transition-all';
+      }
+
+      countdown = 30;
+      fetchFlights();
+    }
+
+    // Auto Refresh Timer
+    setInterval(() => {
+      countdown--;
+      document.getElementById('timer').innerText = countdown;
+      if (countdown <= 0) {
+        countdown = 30;
+        fetchFlights();
+      }
+    }, 1000);
+
+    // Initial Load
+    fetchFlights();
+  </script>
+</body>
+</html>

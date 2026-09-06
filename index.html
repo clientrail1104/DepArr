@@ -29,7 +29,7 @@
       --grey:#65707b;
       --grey-bg:#e7ebef;
 
-      --radius-xl:22px;
+      --radius-xl:18px;
       --radius-lg:16px;
       --radius-md:12px;
     }
@@ -123,9 +123,9 @@
 
     .eyebrow{
       margin:0 0 2px;
-      font-size:8px;
+      font-size:7px;
       font-weight:850;
-      letter-spacing:.12em;
+      letter-spacing:.10em;
       text-transform:uppercase;
       color:var(--muted);
     }
@@ -159,43 +159,37 @@
     ========================= */
 
     .summary{
-      min-height:64px;
+      min-height:50px;
       display:grid;
-      grid-template-columns:minmax(310px, 1.5fr) repeat(3, minmax(105px, .5fr));
-      gap:6px;
-      padding:6px;
+      grid-template-columns:minmax(310px, 1.5fr) repeat(3, minmax(100px, .5fr));
+      gap:5px;
+      padding:4px 5px;
     }
 
     .summary-main{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:10px;
+      gap:8px;
       min-width:0;
-      padding:2px 6px 2px 8px;
+      padding:1px 5px 1px 7px;
     }
 
-    .summary-main h2{
-      margin:0;
-      font-size:clamp(18px, 2.2vw, 28px);
-      line-height:1;
-      letter-spacing:-.04em;
-    }
 
     .summary-main p{
-      margin:3px 0 0;
+      margin:2px 0 0;
       color:var(--muted);
-      font-size:9px;
-      line-height:1.2;
+      font-size:8px;
+      line-height:1.1;
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
     }
 
     .airport-chip{
-      width:58px;
-      height:50px;
-      border-radius:14px;
+      width:50px;
+      height:42px;
+      border-radius:12px;
       flex:0 0 auto;
       display:grid;
       place-items:center;
@@ -208,7 +202,7 @@
 
     .airport-chip strong{
       display:block;
-      font-size:18px;
+      font-size:16px;
       line-height:1;
     }
 
@@ -216,15 +210,15 @@
       display:block;
       margin-top:2px;
       color:var(--muted);
-      font-size:6px;
+      font-size:5px;
       font-weight:900;
       letter-spacing:.10em;
     }
 
     .metric{
-      border-radius:12px;
-      padding:7px 9px;
-      min-height:50px;
+      border-radius:11px;
+      padding:5px 8px;
+      min-height:42px;
       display:flex;
       flex-direction:column;
       justify-content:center;
@@ -236,7 +230,7 @@
 
     .metric-label{
       color:var(--muted);
-      font-size:7px;
+      font-size:6px;
       font-weight:850;
       text-transform:uppercase;
       letter-spacing:.1em;
@@ -244,8 +238,8 @@
 
     .metric-value{
       display:block;
-      margin-top:3px;
-      font-size:13px;
+      margin-top:2px;
+      font-size:12px;
       font-weight:900;
       letter-spacing:-.02em;
       white-space:nowrap;
@@ -740,8 +734,8 @@
       }
 
       .summary{
-        min-height:58px;
-        padding:5px;
+        min-height:48px;
+        padding:4px;
         grid-template-columns:1fr 90px;
       }
 
@@ -754,8 +748,8 @@
       .airport-chip{ display:none; }
 
       .metric{
-        min-height:46px;
-        padding:6px;
+        min-height:40px;
+        padding:5px;
       }
 
       .metric:nth-of-type(2),
@@ -894,10 +888,10 @@
     }
 
     @media (max-height:700px){
-      .summary{ min-height:58px; }
+      .summary{ min-height:48px; }
       .summary-main h2{ font-size:22px; }
       .summary-main p{ font-size:9px; }
-      .metric{ min-height:44px; padding:6px 8px; }
+      .metric{ min-height:38px; padding:5px 7px; }
       .metric-value{ font-size:13px; }
       .controls{ padding:5px; }
       .field, .select{ height:30px; }
@@ -933,7 +927,7 @@
       <div class="summary-main">
         <div>
           <p class="eyebrow">Departures • Terminal 1 Default</p>
-          <h2>Your flight, at a glance.</h2>
+          
           <p>Departure, check-in, boarding, arrival gate and baggage details in one compact screen.</p>
         </div>
 

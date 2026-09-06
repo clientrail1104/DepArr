@@ -358,16 +358,18 @@
 
     .table-wrap{
       min-height:0;
-      overflow:auto;
+      overflow-y:auto;
+      overflow-x:hidden;
       scrollbar-width:thin;
       scrollbar-color:#bdc9d1 transparent;
     }
 
     table{
       width:100%;
+      max-width:100%;
       border-collapse:separate;
       border-spacing:0;
-      min-width:1180px;
+      min-width:0;
       table-layout:fixed;
     }
 
@@ -379,24 +381,28 @@
     }
 
     th{
-      padding:8px 9px;
+      padding:7px 6px;
       text-align:left;
-      font-size:8px;
+      font-size:clamp(6px, .54vw, 8px);
+      line-height:1.1;
       color:var(--muted);
       text-transform:uppercase;
-      letter-spacing:.08em;
+      letter-spacing:.045em;
       font-weight:900;
       border-bottom:1px solid var(--line);
-      white-space:nowrap;
+      white-space:normal;
+      overflow-wrap:anywhere;
+      vertical-align:middle;
     }
 
     td{
-      padding:9px 9px;
+      padding:7px 6px;
       border-bottom:1px solid rgba(21,34,46,.065);
       vertical-align:middle;
-      font-size:11px;
-      line-height:1.2;
+      font-size:clamp(7px, .66vw, 10px);
+      line-height:1.12;
       overflow:hidden;
+      overflow-wrap:anywhere;
     }
 
     tbody tr{ transition:.15s ease; }
@@ -404,55 +410,58 @@
     tbody tr:last-child td{ border-bottom:0; }
 
     .time{
-      font-size:15px;
+      font-size:clamp(10px, .9vw, 14px);
       font-weight:900;
-      letter-spacing:-.03em;
+      letter-spacing:-.025em;
       white-space:nowrap;
     }
 
     .flight-no{
       font-weight:900;
-      font-size:12px;
+      font-size:clamp(9px, .78vw, 12px);
       white-space:nowrap;
     }
 
     .airline{
       color:#4f5e6a;
       font-weight:700;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
+      white-space:normal;
+      overflow:visible;
+      text-overflow:clip;
       display:block;
+      overflow-wrap:anywhere;
     }
 
     .route{
       font-weight:800;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
+      white-space:normal;
+      overflow:visible;
+      text-overflow:clip;
       display:block;
+      overflow-wrap:anywhere;
     }
 
     .subcell{
       display:block;
       color:var(--muted);
-      font-size:8px;
+      font-size:clamp(6px, .52vw, 8px);
       margin-top:2px;
       font-weight:700;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
+      white-space:normal;
+      overflow:visible;
+      text-overflow:clip;
+      overflow-wrap:anywhere;
     }
 
     .terminal{
       display:inline-grid;
       place-items:center;
-      min-width:34px;
-      height:27px;
-      padding:0 7px;
-      border-radius:9px;
+      min-width:28px;
+      height:24px;
+      padding:0 5px;
+      border-radius:8px;
       font-weight:900;
-      font-size:10px;
+      font-size:clamp(7px, .58vw, 9px);
       background:var(--panel);
       box-shadow:
         inset 2px 2px 6px rgba(164,178,188,.29),
@@ -462,22 +471,27 @@
     .info-value{
       display:block;
       font-weight:850;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
+      white-space:normal;
+      overflow:visible;
+      text-overflow:clip;
+      overflow-wrap:anywhere;
     }
 
     .status{
       display:inline-flex;
       align-items:center;
-      gap:5px;
-      min-height:27px;
-      padding:5px 8px;
+      justify-content:center;
+      gap:4px;
+      min-height:23px;
+      max-width:100%;
+      padding:4px 6px;
       border-radius:999px;
-      font-size:8px;
+      font-size:clamp(6px, .5vw, 8px);
+      line-height:1.05;
       font-weight:950;
-      letter-spacing:.025em;
-      white-space:nowrap;
+      letter-spacing:.015em;
+      white-space:normal;
+      text-align:center;
       text-transform:uppercase;
     }
 
@@ -537,16 +551,16 @@
       padding:26px !important;
     }
 
-    /* fixed column widths for one-screen desktop readability */
-    th:nth-child(1), td:nth-child(1){ width:120px; }
-    th:nth-child(2), td:nth-child(2){ width:150px; }
-    th:nth-child(3), td:nth-child(3){ width:150px; }
-    th:nth-child(4), td:nth-child(4){ width:70px; }
-    th:nth-child(5), td:nth-child(5){ width:120px; }
-    th:nth-child(6), td:nth-child(6){ width:100px; }
-    th:nth-child(7), td:nth-child(7){ width:100px; }
-    th:nth-child(8), td:nth-child(8){ width:100px; }
-    th:nth-child(9), td:nth-child(9){ width:115px; }
+    /* All nine columns remain visible within the viewport */
+    th:nth-child(1), td:nth-child(1){ width:13%; }
+    th:nth-child(2), td:nth-child(2){ width:14%; }
+    th:nth-child(3), td:nth-child(3){ width:13%; }
+    th:nth-child(4), td:nth-child(4){ width:7%; }
+    th:nth-child(5), td:nth-child(5){ width:13%; }
+    th:nth-child(6), td:nth-child(6){ width:10%; }
+    th:nth-child(7), td:nth-child(7){ width:10%; }
+    th:nth-child(8), td:nth-child(8){ width:9%; }
+    th:nth-child(9), td:nth-child(9){ width:11%; }
 
     .toast{
       position:fixed;
@@ -671,14 +685,107 @@
 
       .board-note{ font-size:8px; max-width:62vw; }
 
-      table{ min-width:1120px; }
+      table{
+        min-width:0;
+        width:100%;
+      }
 
-      th{ padding:7px 8px; }
-      td{ padding:8px; }
+      th{
+        padding:5px 3px;
+        font-size:5.5px;
+        letter-spacing:.02em;
+      }
+
+      td{
+        padding:6px 3px;
+        font-size:6.5px;
+        line-height:1.08;
+      }
+
+      .time{ font-size:9px; }
+      .flight-no{ font-size:8px; }
+      .subcell{ font-size:5.5px; }
+      .terminal{
+        min-width:23px;
+        height:20px;
+        padding:0 3px;
+        font-size:6.5px;
+      }
+
+      .status{
+        padding:3px 4px;
+        min-height:20px;
+        font-size:5.5px;
+        gap:3px;
+      }
+
+      .status:before{
+        width:4px;
+        height:4px;
+      }
 
       .toast{
         right:8px;
         bottom:8px;
+      }
+    }
+
+    @media (max-width:520px){
+      .app{
+        width:calc(100% - 6px);
+      }
+
+      .summary-main p{
+        display:none;
+      }
+
+      .controls{
+        padding:5px;
+      }
+
+      .control-grid{
+        grid-template-columns:minmax(0,1fr) 80px;
+        gap:4px;
+      }
+
+      .field, .select{
+        height:30px;
+        font-size:9px;
+        padding-left:7px;
+        padding-right:7px;
+      }
+
+      .board-head{
+        padding:6px 8px;
+      }
+
+      th{
+        padding:4px 2px;
+        font-size:4.8px;
+        line-height:1.02;
+      }
+
+      td{
+        padding:5px 2px;
+        font-size:5.8px;
+        line-height:1.02;
+      }
+
+      .time{ font-size:8px; }
+      .flight-no{ font-size:7px; }
+      .subcell{ font-size:4.8px; margin-top:1px; }
+
+      .terminal{
+        min-width:20px;
+        height:18px;
+        font-size:5.8px;
+        border-radius:6px;
+      }
+
+      .status{
+        min-height:18px;
+        padding:2px 3px;
+        font-size:4.7px;
       }
     }
 
@@ -794,7 +901,7 @@
     <section class="card board">
       <div class="board-head">
         <div>
-          <h2 class="board-title">Flight Information</h2>
+          <h2 class="board-title">Complete Flight Information</h2>
         </div>
         <div class="live-pill">
             <span class="live-dot"></span>

@@ -1,0 +1,1640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#eef3f6" />
+  <title>KLIA Flight Tracker</title>
+
+  <style>
+    :root{
+      --bg:#eef3f6;
+      --panel:#eef3f6;
+      --text:#17212b;
+      --muted:#74808c;
+      --line:rgba(21,34,46,.10);
+      --shadow-dark:rgba(157,171,181,.46);
+      --shadow-light:rgba(255,255,255,.92);
+
+      --green:#1c8c5d;
+      --green-bg:#e4f5ec;
+      --blue:#2169b1;
+      --blue-bg:#e6f0fb;
+      --amber:#a96500;
+      --amber-bg:#fff1cf;
+      --orange:#c85e00;
+      --orange-bg:#fff0de;
+      --red:#bf3440;
+      --red-bg:#ffe5e8;
+      --grey:#65707b;
+      --grey-bg:#e7ebef;
+
+      --radius-xl:18px;
+      --radius-lg:16px;
+      --radius-md:12px;
+    }
+
+    *{ box-sizing:border-box; }
+
+    html, body{
+      margin:0;
+      width:100%;
+      min-height:100%;
+    }
+
+    body{
+      height:100dvh;
+      overflow:hidden;
+      font-family:
+        Inter,
+        ui-sans-serif,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+      background:
+        radial-gradient(circle at 15% 8%, rgba(255,255,255,.80), transparent 24%),
+        radial-gradient(circle at 90% 0%, rgba(255,255,255,.50), transparent 22%),
+        var(--bg);
+      color:var(--text);
+    }
+
+    button, input, select{ font:inherit; }
+    button{ cursor:pointer; }
+    a{ color:inherit; }
+
+    .app{
+      width:min(1500px, calc(100% - 18px));
+      height:100dvh;
+      margin:0 auto;
+      padding:10px 0;
+      display:grid;
+      grid-template-rows:auto auto minmax(0,1fr);
+      gap:6px;
+    }
+
+    .card{
+      background:rgba(238,243,246,.94);
+      border:1px solid rgba(255,255,255,.58);
+      border-radius:var(--radius-xl);
+      box-shadow:
+        9px 9px 20px var(--shadow-dark),
+        -9px -9px 20px var(--shadow-light);
+    }
+
+    /* =========================
+       TOP BAR
+    ========================= */
+
+    .topbar{
+      min-height:66px;
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto auto;
+      align-items:center;
+      gap:12px;
+      padding:8px 10px;
+    }
+
+    .header-main{
+      min-width:0;
+      display:flex;
+      align-items:center;
+      gap:18px;
+    }
+
+    .header-summary-copy{
+      min-width:0;
+      padding-left:2px;
+    }
+
+    .header-subtext{
+      margin:2px 0 0;
+      color:var(--muted);
+      font-size:8px;
+      line-height:1.15;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width:560px;
+    }
+
+    .header-metrics{
+      display:grid;
+      grid-template-columns:52px 145px 135px;
+      align-items:stretch;
+      gap:6px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:0;
+    }
+
+    .brand-mark{
+      width:38px;
+      height:38px;
+      border-radius:12px;
+      display:grid;
+      place-items:center;
+      flex:0 0 auto;
+      background:var(--panel);
+      box-shadow:
+        5px 5px 12px var(--shadow-dark),
+        -5px -5px 12px var(--shadow-light);
+      font-size:18px;
+    }
+
+    .brand-copy{ min-width:0; }
+
+    .eyebrow{
+      margin:0 0 2px;
+      font-size:7px;
+      font-weight:850;
+      letter-spacing:.10em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+
+    h1{
+      margin:0;
+      font-size:clamp(16px, 1.6vw, 23px);
+      line-height:1;
+      letter-spacing:-.035em;
+    }
+
+    .source-link{
+      text-decoration:none;
+      padding:9px 12px;
+      border-radius:12px;
+      color:#4e5c68;
+      font-size:11px;
+      font-weight:800;
+      white-space:nowrap;
+      background:var(--panel);
+      box-shadow:
+        5px 5px 11px var(--shadow-dark),
+        -5px -5px 11px var(--shadow-light);
+      transition:.18s ease;
+    }
+
+    .source-link:hover{ transform:translateY(-1px); }
+
+    /* =========================
+       HEADER METRICS
+    ========================= */
+
+
+    .airport-chip{
+      width:52px;
+      height:46px;
+      border-radius:12px;
+      flex:0 0 auto;
+      display:grid;
+      place-items:center;
+      text-align:center;
+      background:var(--panel);
+      box-shadow:
+        inset 5px 5px 10px rgba(170,183,192,.38),
+        inset -5px -5px 10px rgba(255,255,255,.92);
+    }
+
+    .airport-chip strong{
+      display:block;
+      font-size:16px;
+      line-height:1;
+    }
+
+    .airport-chip span{
+      display:block;
+      margin-top:2px;
+      color:var(--muted);
+      font-size:5px;
+      font-weight:900;
+      letter-spacing:.10em;
+    }
+
+    .metric{
+      border-radius:11px;
+      padding:5px 8px;
+      min-height:46px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      background:var(--panel);
+      box-shadow:
+        inset 3px 3px 7px rgba(166,180,189,.32),
+        inset -3px -3px 7px rgba(255,255,255,.90);
+    }
+
+    .metric-label{
+      color:var(--muted);
+      font-size:6px;
+      font-weight:850;
+      text-transform:uppercase;
+      letter-spacing:.1em;
+    }
+
+    .metric-value{
+      display:block;
+      margin-top:2px;
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:-.02em;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    /* =========================
+       CONTROLS
+    ========================= */
+
+    .controls{ padding:6px; }
+
+    .control-grid{
+      display:grid;
+      grid-template-columns:minmax(240px, 1.35fr) repeat(3, minmax(130px, .45fr));
+      gap:6px;
+      align-items:center;
+    }
+
+    .field, .select{
+      height:32px;
+      border:0;
+      outline:0;
+      border-radius:9px;
+      background:var(--panel);
+      color:var(--text);
+      box-shadow:
+        inset 3px 3px 7px rgba(166,180,189,.32),
+        inset -3px -3px 7px rgba(255,255,255,.90);
+    }
+
+    .field{
+      width:100%;
+      padding:0 10px;
+      font-size:10px;
+    }
+
+    .field::placeholder{ color:#98a1a9; }
+
+    .select{
+      width:100%;
+      padding:0 9px;
+      font-size:10px;
+    }
+
+    /* =========================
+       BOARD
+    ========================= */
+
+    .board{
+      min-height:0;
+      overflow:hidden;
+      display:grid;
+      grid-template-rows:auto minmax(0,1fr);
+    }
+
+    .board-head{
+      padding:11px 14px 9px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      border-bottom:1px solid var(--line);
+    }
+
+    .board-title{
+      margin:0;
+      font-size:16px;
+      letter-spacing:-.02em;
+    }
+
+    .board-note{
+      margin:3px 0 0;
+      font-size:9px;
+      color:var(--muted);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width:70vw;
+    }
+
+
+
+    .live-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      color:var(--green);
+      font-size:9px;
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      white-space:nowrap;
+    }
+
+    .live-dot{
+      width:7px;
+      height:7px;
+      border-radius:50%;
+      background:var(--green);
+      animation:pulse 1.7s infinite;
+    }
+
+    @keyframes pulse{
+      0%{box-shadow:0 0 0 0 rgba(28,140,93,.42)}
+      65%{box-shadow:0 0 0 7px rgba(28,140,93,0)}
+      100%{box-shadow:0 0 0 0 rgba(28,140,93,0)}
+    }
+
+    .table-wrap{
+      min-height:0;
+      overflow-y:auto;
+      overflow-x:hidden;
+      scrollbar-width:thin;
+      scrollbar-color:#bdc9d1 transparent;
+    }
+
+    table{
+      width:100%;
+      max-width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      min-width:0;
+      table-layout:fixed;
+    }
+
+    thead{
+      position:sticky;
+      top:0;
+      z-index:3;
+      background:#eef3f6;
+    }
+
+    th{
+      padding:7px 6px;
+      text-align:left;
+      font-size:clamp(6px, .54vw, 8px);
+      line-height:1.1;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.045em;
+      font-weight:900;
+      border-bottom:1px solid var(--line);
+      white-space:normal;
+      overflow-wrap:anywhere;
+      vertical-align:middle;
+    }
+
+    td{
+      padding:7px 6px;
+      border-bottom:1px solid rgba(21,34,46,.065);
+      vertical-align:middle;
+      font-size:clamp(7px, .66vw, 10px);
+      line-height:1.12;
+      overflow:hidden;
+      overflow-wrap:anywhere;
+    }
+
+    tbody{
+      transform-style:preserve-3d;
+    }
+
+    tbody tr{
+      transition:
+        background .25s ease,
+        opacity .25s ease;
+      transform-origin:center center;
+      backface-visibility:hidden;
+    }
+
+    tbody tr:hover{
+      background:rgba(255,255,255,.28);
+    }
+
+    tbody tr:last-child td{
+      border-bottom:0;
+    }
+
+    tbody tr.row-updated{
+      position:relative;
+      z-index:2;
+      animation:rowFlipUpdate 1.65s cubic-bezier(.22,.61,.36,1) both;
+    }
+
+    tbody tr.row-updated td{
+      animation:rowUpdateGlow 1.65s ease both;
+    }
+
+    @keyframes rowFlipUpdate{
+      0%{
+        transform:perspective(1200px) rotateX(0deg) scale(1);
+      }
+
+      28%{
+        transform:perspective(1200px) rotateX(72deg) scale(.985);
+      }
+
+      52%{
+        transform:perspective(1200px) rotateX(-9deg) scale(1.008);
+      }
+
+      72%{
+        transform:perspective(1200px) rotateX(4deg) scale(1.003);
+      }
+
+      100%{
+        transform:perspective(1200px) rotateX(0deg) scale(1);
+      }
+    }
+
+    @keyframes rowUpdateGlow{
+      0%{
+        background:rgba(255,255,255,0);
+      }
+
+      32%{
+        background:rgba(255,255,255,.66);
+      }
+
+      70%{
+        background:rgba(230,240,251,.48);
+      }
+
+      100%{
+        background:rgba(255,255,255,0);
+      }
+    }
+
+    @media (prefers-reduced-motion:reduce){
+      tbody tr.row-updated,
+      tbody tr.row-updated td{
+        animation:none !important;
+      }
+    }
+
+    .time{
+      font-size:clamp(10px, .9vw, 14px);
+      font-weight:900;
+      letter-spacing:-.025em;
+      white-space:nowrap;
+    }
+
+    .flight-no{
+      font-weight:900;
+      font-size:clamp(9px, .78vw, 12px);
+      white-space:nowrap;
+    }
+
+    .airline{
+      color:#4f5e6a;
+      font-weight:700;
+      white-space:normal;
+      overflow:visible;
+      text-overflow:clip;
+      display:block;
+      overflow-wrap:anywhere;
+    }
+
+    .route{
+      font-weight:800;
+      white-space:normal;
+      overflow:visible;
+      text-overflow:clip;
+      display:block;
+      overflow-wrap:anywhere;
+    }
+
+    .subcell{
+      display:block;
+      color:var(--muted);
+      font-size:clamp(6px, .52vw, 8px);
+      margin-top:2px;
+      font-weight:700;
+      white-space:normal;
+      overflow:visible;
+      text-overflow:clip;
+      overflow-wrap:anywhere;
+    }
+
+    .checkin-time{
+      display:block;
+      color:var(--muted);
+      font-size:clamp(6px, .52vw, 8px);
+      margin-top:2px;
+      font-weight:800;
+      white-space:normal;
+      overflow-wrap:anywhere;
+    }
+
+    .checkin-time.active{
+      color:#EE2D34;
+      animation:checkInBlink 2.2s ease-in-out infinite;
+    }
+
+    @keyframes checkInBlink{
+      0%,100%{
+        opacity:1;
+      }
+
+      50%{
+        opacity:.28;
+      }
+    }
+
+    @media (prefers-reduced-motion:reduce){
+      .checkin-time.active{
+        animation:none;
+      }
+    }
+
+    .terminal{
+      display:inline-grid;
+      place-items:center;
+      min-width:28px;
+      height:24px;
+      padding:0 5px;
+      border-radius:8px;
+      font-weight:900;
+      font-size:clamp(7px, .58vw, 9px);
+      background:var(--panel);
+      box-shadow:
+        inset 2px 2px 6px rgba(164,178,188,.29),
+        inset -2px -2px 6px rgba(255,255,255,.88);
+    }
+
+    .info-value{
+      display:block;
+      font-weight:850;
+      white-space:normal;
+      overflow:visible;
+      text-overflow:clip;
+      overflow-wrap:anywhere;
+    }
+
+    .status{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:4px;
+      min-height:23px;
+      max-width:100%;
+      padding:4px 6px;
+      border-radius:999px;
+      font-size:clamp(6px, .5vw, 8px);
+      line-height:1.05;
+      font-weight:950;
+      letter-spacing:.015em;
+      white-space:normal;
+      text-align:center;
+      text-transform:uppercase;
+    }
+
+    .status:before{
+      content:"";
+      width:6px;
+      height:6px;
+      border-radius:50%;
+      background:currentColor;
+    }
+
+    .status-scheduled,
+    .status-ontime{
+      background:var(--green-bg);
+      color:var(--green);
+    }
+
+    .status-boarding,
+    .status-gateopen{
+      background:var(--blue-bg);
+      color:var(--blue);
+    }
+
+    .status-finalcall{
+      background:var(--orange-bg);
+      color:var(--orange);
+      animation:softFlash 1.2s infinite;
+    }
+
+    .status-delayed{
+      background:var(--amber-bg);
+      color:var(--amber);
+    }
+
+    .status-cancelled{
+      background:var(--red-bg);
+      color:var(--red);
+    }
+
+    .status-departed,
+    .status-enroute,
+    .status-landed,
+    .status-arrived,
+    .status-gateclosed{
+      background:var(--grey-bg);
+      color:var(--grey);
+    }
+
+    @keyframes softFlash{
+      0%,100%{opacity:1}
+      50%{opacity:.66}
+    }
+
+    .empty{
+      text-align:center;
+      color:var(--muted);
+      padding:26px !important;
+    }
+
+    /* All nine columns remain visible within the viewport */
+    th:nth-child(1), td:nth-child(1){ width:13%; }
+    th:nth-child(2), td:nth-child(2){ width:14%; }
+    th:nth-child(3), td:nth-child(3){ width:13%; }
+    th:nth-child(4), td:nth-child(4){ width:7%; }
+    th:nth-child(5), td:nth-child(5){ width:13%; }
+    th:nth-child(6), td:nth-child(6){ width:10%; }
+    th:nth-child(7), td:nth-child(7){ width:10%; }
+    th:nth-child(8), td:nth-child(8){ width:9%; }
+    th:nth-child(9), td:nth-child(9){ width:11%; }
+
+    .toast{
+      position:fixed;
+      right:14px;
+      bottom:14px;
+      z-index:20;
+      max-width:min(400px, calc(100% - 28px));
+      padding:10px 12px;
+      border-radius:12px;
+      background:rgba(32,42,52,.92);
+      color:white;
+      font-size:10px;
+      line-height:1.4;
+      box-shadow:0 10px 30px rgba(0,0,0,.18);
+      opacity:0;
+      transform:translateY(12px);
+      pointer-events:none;
+      transition:.22s ease;
+    }
+
+    .toast.show{
+      opacity:1;
+      transform:translateY(0);
+    }
+
+    /* =========================
+       RESPONSIVE
+    ========================= */
+
+    @media (max-width:1050px){
+      .topbar{
+        grid-template-columns:minmax(0,1fr) auto;
+      }
+
+      .header-main{
+        gap:12px;
+      }
+
+      .header-summary-copy{
+        display:none;
+      }
+
+      .header-metrics{
+        grid-template-columns:48px 120px 110px;
+      }
+
+      .source-link{
+        display:none;
+      }
+
+      .control-grid{
+        grid-template-columns:minmax(220px,1.3fr) 1fr 1fr;
+      }
+
+      #sortSelect{ display:none; }
+    }
+
+    @media (max-width:760px){
+      .app{
+        width:calc(100% - 10px);
+        padding:6px 0;
+        gap:6px;
+      }
+
+      .topbar{
+        min-height:54px;
+        grid-template-columns:minmax(0,1fr) auto;
+        gap:7px;
+        padding:6px 7px;
+      }
+
+      .header-main{
+        gap:8px;
+      }
+
+      .header-metrics{
+        grid-template-columns:44px 92px;
+        gap:5px;
+      }
+
+      .header-metrics .metric:last-child{
+        display:none;
+      }
+
+      .brand-mark{
+        width:38px;
+        height:38px;
+        border-radius:12px;
+      }
+
+      .source-link{
+        font-size:0;
+        width:40px;
+        height:40px;
+        padding:0;
+        display:grid;
+        place-items:center;
+      }
+
+      .source-link::after{
+        content:"↗";
+        font-size:17px;
+      }
+
+
+      .controls{ padding:5px; }
+
+      .control-grid{
+        grid-template-columns:1fr 105px;
+        gap:6px;
+      }
+
+      #statusFilter,
+      #sortSelect{
+        display:none;
+      }
+
+      .field, .select{
+        height:30px;
+        font-size:9px;
+      }
+
+      .board-head{
+        padding:8px 10px;
+      }
+
+      .board-title{ font-size:14px; }
+
+
+      .board-note{ font-size:8px; max-width:62vw; }
+
+      table{
+        min-width:0;
+        width:100%;
+      }
+
+      th{
+        padding:5px 3px;
+        font-size:5.5px;
+        letter-spacing:.02em;
+      }
+
+      td{
+        padding:6px 3px;
+        font-size:6.5px;
+        line-height:1.08;
+      }
+
+      .time{ font-size:9px; }
+      .flight-no{ font-size:8px; }
+      .subcell{ font-size:5.5px; }
+      .terminal{
+        min-width:23px;
+        height:20px;
+        padding:0 3px;
+        font-size:6.5px;
+      }
+
+      .status{
+        padding:3px 4px;
+        min-height:20px;
+        font-size:5.5px;
+        gap:3px;
+      }
+
+      .status:before{
+        width:4px;
+        height:4px;
+      }
+
+      .toast{
+        right:8px;
+        bottom:8px;
+      }
+    }
+
+    @media (max-width:520px){
+      .app{
+        width:calc(100% - 6px);
+      }
+
+      .summary-main p{
+        display:none;
+      }
+
+      .controls{
+        padding:5px;
+      }
+
+      .control-grid{
+        grid-template-columns:minmax(0,1fr) 80px;
+        gap:4px;
+      }
+
+      .field, .select{
+        height:30px;
+        font-size:9px;
+        padding-left:7px;
+        padding-right:7px;
+      }
+
+      .board-head{
+        padding:6px 8px;
+      }
+
+      th{
+        padding:4px 2px;
+        font-size:4.8px;
+        line-height:1.02;
+      }
+
+      td{
+        padding:5px 2px;
+        font-size:5.8px;
+        line-height:1.02;
+      }
+
+      .time{ font-size:8px; }
+      .flight-no{ font-size:7px; }
+      .subcell{ font-size:4.8px; margin-top:1px; }
+
+      .terminal{
+        min-width:20px;
+        height:18px;
+        font-size:5.8px;
+        border-radius:6px;
+      }
+
+      .status{
+        min-height:18px;
+        padding:2px 3px;
+        font-size:4.7px;
+      }
+    }
+
+    @media (max-height:700px){
+      .controls{ padding:5px; }
+      .field, .select{ height:30px; }
+      .board-head{ padding:8px 12px; }
+      td{ padding-top:7px; padding-bottom:7px; }
+      th{ padding-top:6px; padding-bottom:6px; }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+
+    <header class="topbar card">
+      <div class="header-main">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">✈</div>
+
+          <div class="brand-copy">
+            <p class="eyebrow">Kuala Lumpur International Airport</p>
+            <h1>Flight Tracker</h1>
+          </div>
+        </div>
+
+        <div class="header-summary-copy">
+          <p class="eyebrow">Departures • Terminal 1 Default</p>
+          <p class="header-subtext">
+            Departure, check-in, boarding, arrival gate and baggage details in one compact screen.
+          </p>
+        </div>
+      </div>
+
+      <div class="header-metrics">
+        <div class="airport-chip" aria-label="Kuala Lumpur airport code KUL">
+          <div>
+            <strong>KUL</strong>
+            <span>T1 / T2</span>
+          </div>
+        </div>
+
+        <div class="metric">
+          <span class="metric-label">Local time</span>
+          <strong class="metric-value" id="localTime">--:--</strong>
+        </div>
+
+        <div class="metric">
+          <span class="metric-label">Visible / Loaded</span>
+          <strong class="metric-value" id="visibleFlights">0</strong>
+        </div>
+      </div>
+
+      <a
+        class="source-link"
+        href="https://www.trip.com/flights/status/kul/?&allianceid=14900&sid=4141571&ppcid=ckid-56229731667_adid-515041284145_akid-kwd-342372378891_adgid-119626675423&utm_source=google&utm_medium=cpc&utm_campaign=12766215807&gad_source=1&gad_campaignid=12766215807&gbraid=0AAAAABn2eFI48elC_6GPsErhTTF2zxoe4&gclid=Cj0KCQjw--7UBhCpARIsAGJBpth3wiRfvcug135vSGpTdTpcWbKH95ZgkO1JBsyw5HnHWtEZsNdWOcUaAqbJEALw_wcB"
+        target="_blank"
+        rel="noopener noreferrer"
+        title="Open Trip.com KUL flight status"
+      >Trip.com Status ↗</a>
+    </header>
+
+    <section class="card controls" aria-label="Flight filters">
+      <div class="control-grid">
+        <div class="search-wrap">
+          <input
+            class="field"
+            id="searchInput"
+            type="search"
+            autocomplete="off"
+            placeholder="Search flight, destination, airline, counter, gate or baggage"
+            aria-label="Search flights"
+          />
+        </div>
+
+        <select class="select" id="terminalFilter" aria-label="Terminal filter">
+          <option value="T1" selected>Terminal 1</option>
+          <option value="ALL">All terminals</option>
+          <option value="T2">Terminal 2</option>
+        </select>
+
+        <select class="select" id="statusFilter" aria-label="Status filter">
+          <option value="ALL">All statuses</option>
+          <option value="SCHEDULED">Scheduled</option>
+          <option value="ON TIME">On Time</option>
+          <option value="BOARDING">Boarding</option>
+          <option value="FINAL CALL">Final Call</option>
+          <option value="DELAYED">Delayed</option>
+          <option value="CANCELLED">Cancelled</option>
+          <option value="DEPARTED">Departed</option>
+          <option value="EN ROUTE">En Route</option>
+          <option value="LANDED">Landed</option>
+          <option value="ARRIVED">Arrived</option>
+        </select>
+
+        <select class="select" id="sortSelect" aria-label="Sort flights">
+          <option value="TIME_ASC">Time ↑</option>
+          <option value="TIME_DESC">Time ↓</option>
+          <option value="FLIGHT_ASC">Flight A–Z</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="card board">
+      <div class="board-head">
+        <div>
+          <h2 class="board-title">All Flight Information</h2>
+        </div>
+        <div class="live-pill">
+            <span class="live-dot"></span>
+            Status monitor
+          </div>
+      </div>
+
+      <div class="table-wrap">
+        <table aria-label="KLIA flight status and passenger handling details">
+          <thead>
+            <tr>
+              <th>Departure / Check-in Time</th>
+              <th>Flight / Airline</th>
+              <th>Destination</th>
+              <th>Terminal</th>
+              <th>Check-in Counter</th>
+              <th>Boarding Gate</th>
+              <th>Arrival Gate</th>
+              <th>Baggage</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+
+          <tbody id="flightRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    /* =========================================================
+       CONFIGURATION
+    ========================================================= */
+
+    const TRIP_COM_URL =
+      "https://www.trip.com/flights/status/kul/?&allianceid=14900&sid=4141571&ppcid=ckid-56229731667_adid-515041284145_akid-kwd-342372378891_adgid-119626675423&utm_source=google&utm_medium=cpc&utm_campaign=12766215807&gad_source=1&gad_campaignid=12766215807&gbraid=0AAAAABn2eFI48elC_6GPsErhTTF2zxoe4&gclid=Cj0KCQjw--7UBhCpARIsAGJBpth3wiRfvcug135vSGpTdTpcWbKH95ZgkO1JBsyw5HnHWtEZsNdWOcUaAqbJEALw_wcB";
+
+    const LIVE_FLIGHTS_URL = "./flights.json";
+    const AUTO_REFRESH_MS = 10 * 1000; // browser checks regenerated data every 10 seconds
+
+
+    /* =========================================================
+       LIVE TRIP.COM DATA
+    ========================================================= */
+
+    // No embedded 10-flight demo dataset.
+    // All rows are loaded from ./flights.json, which GitHub Actions
+    // regenerates from the Trip.com KUL Departures page.
+
+
+    /* =========================================================
+       STATE + DOM
+    ========================================================= */
+
+    // Live rows are loaded from flights.json.
+    let flights = [];
+
+    /*
+      Update tracking:
+      - previousFlightSnapshot stores the last successful live response.
+      - flightUpdateTimes keeps the most recent change time for each flight.
+      - pendingAnimatedKeys contains rows that should flip on the next render.
+    */
+    let previousFlightSnapshot = new Map();
+    const flightUpdateTimes = new Map();
+    let pendingAnimatedKeys = new Set();
+
+    const flightRows = document.getElementById("flightRows");
+    const searchInput = document.getElementById("searchInput");
+    const terminalFilter = document.getElementById("terminalFilter");
+    const statusFilter = document.getElementById("statusFilter");
+    const sortSelect = document.getElementById("sortSelect");
+
+    const localTime = document.getElementById("localTime");
+    const visibleFlights = document.getElementById("visibleFlights");
+    const toast = document.getElementById("toast");
+
+
+    /* =========================================================
+       HELPERS
+    ========================================================= */
+
+    function escapeHtml(value = "") {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function safeValue(value, fallback = "TBA") {
+      const text = String(value ?? "").trim();
+      return text ? text : fallback;
+    }
+
+    function normalizeTerminal(rawTerminal = "--") {
+      const text = String(rawTerminal)
+        .trim()
+        .toUpperCase()
+        .replace("TERMINAL ", "T")
+        .replace("TERMINAL", "T");
+
+      if (text === "1") return "T1";
+      if (text === "2") return "T2";
+      return text || "--";
+    }
+
+    function normalizeStatus(rawStatus = "") {
+      const value = String(rawStatus)
+        .toLowerCase()
+        .trim()
+        .replace(/[_-]+/g, " ")
+        .replace(/\s+/g, " ");
+
+      if (value.includes("cancel")) return "CANCELLED";
+      if (value.includes("final call") || value.includes("last call")) return "FINAL CALL";
+      if (value.includes("boarding")) return "BOARDING";
+      if (value.includes("gate open")) return "GATE OPEN";
+      if (value.includes("gate closed")) return "GATE CLOSED";
+      if (value.includes("delay")) return "DELAYED";
+      if (value.includes("landed")) return "LANDED";
+      if (value.includes("arrived")) return "ARRIVED";
+      if (value.includes("en route") || value.includes("enroute")) return "EN ROUTE";
+      if (value.includes("departed")) return "DEPARTED";
+      if (value.includes("on time") || value.includes("ontime")) return "ON TIME";
+      if (value.includes("scheduled")) return "SCHEDULED";
+
+      return String(rawStatus || "Scheduled").toUpperCase();
+    }
+
+    function statusClass(status) {
+      const value = normalizeStatus(status);
+
+      const classes = {
+        "SCHEDULED":"status-scheduled",
+        "ON TIME":"status-ontime",
+        "GATE OPEN":"status-gateopen",
+        "BOARDING":"status-boarding",
+        "FINAL CALL":"status-finalcall",
+        "DELAYED":"status-delayed",
+        "CANCELLED":"status-cancelled",
+        "DEPARTED":"status-departed",
+        "EN ROUTE":"status-enroute",
+        "LANDED":"status-landed",
+        "ARRIVED":"status-arrived",
+        "GATE CLOSED":"status-gateclosed"
+      };
+
+      return classes[value] || "status-scheduled";
+    }
+
+    function minutesFromTime(time) {
+      const match = String(time).match(/^(\d{1,2}):(\d{2})$/);
+      if (!match) return Number.MAX_SAFE_INTEGER;
+      return Number(match[1]) * 60 + Number(match[2]);
+    }
+
+    function getFlightKey(flight) {
+      const flightNumber = safeValue(flight.flight, "UNKNOWN")
+        .toUpperCase()
+        .replace(/\s+/g, "");
+
+      const destination = safeValue(flight.destination, "UNKNOWN")
+        .toUpperCase()
+        .replace(/\s+/g, " ");
+
+      return `${flightNumber}|${destination}`;
+    }
+
+    function getComparableFlight(flight) {
+      return {
+        time:safeValue(flight.time, "--:--"),
+        estimatedTime:safeValue(flight.estimatedTime, ""),
+        checkInTime:safeValue(flight.checkInTime),
+        flight:safeValue(flight.flight, "—"),
+        destination:safeValue(flight.destination, "—"),
+        airline:safeValue(flight.airline, "—"),
+        terminal:normalizeTerminal(flight.terminal),
+        checkInCounter:safeValue(flight.checkInCounter),
+        boardingGate:safeValue(flight.boardingGate),
+        arrivalGate:safeValue(flight.arrivalGate),
+        baggage:safeValue(flight.baggage),
+        status:safeValue(flight.status)
+      };
+    }
+
+    function didFlightChange(previousFlight, nextFlight) {
+      if (!previousFlight) return true;
+
+      const before = getComparableFlight(previousFlight);
+      const after = getComparableFlight(nextFlight);
+
+      return Object.keys(after).some(key => before[key] !== after[key]);
+    }
+
+    function getKualaLumpurMinutesNow() {
+      const parts = new Intl.DateTimeFormat("en-GB", {
+        timeZone:"Asia/Kuala_Lumpur",
+        hour:"2-digit",
+        minute:"2-digit",
+        hour12:false
+      }).formatToParts(new Date());
+
+      const hour = Number(parts.find(part => part.type === "hour")?.value ?? 0);
+      const minute = Number(parts.find(part => part.type === "minute")?.value ?? 0);
+
+      return hour * 60 + minute;
+    }
+
+    function parseClockToMinutes(value) {
+      const match = String(value).trim().match(/^(\d{1,2}):(\d{2})$/);
+
+      if (!match) return null;
+
+      const hour = Number(match[1]);
+      const minute = Number(match[2]);
+
+      if (
+        !Number.isInteger(hour) ||
+        !Number.isInteger(minute) ||
+        hour < 0 ||
+        hour > 23 ||
+        minute < 0 ||
+        minute > 59
+      ) {
+        return null;
+      }
+
+      return hour * 60 + minute;
+    }
+
+    function isWithinCheckInWindow(checkInTime) {
+      const text = String(checkInTime ?? "").trim();
+
+      if (!text || text.toUpperCase() === "TBA") return false;
+
+      const match = text.match(
+        /(\d{1,2}:\d{2})\s*(?:-|–|—|to)\s*(\d{1,2}:\d{2})/i
+      );
+
+      if (!match) return false;
+
+      const start = parseClockToMinutes(match[1]);
+      const end = parseClockToMinutes(match[2]);
+
+      if (start === null || end === null) return false;
+
+      const now = getKualaLumpurMinutesNow();
+
+      // Same-day window, e.g. 08:20 - 10:20
+      if (end >= start) {
+        return now >= start && now <= end;
+      }
+
+      // Overnight window, e.g. 23:00 - 01:00
+      return now >= start || now <= end;
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(showToast.timer);
+
+      showToast.timer = setTimeout(() => {
+        toast.classList.remove("show");
+      }, 2800);
+    }
+
+
+    /* =========================================================
+       CLOCK
+    ========================================================= */
+
+    function updateClock() {
+      const now = new Date();
+
+      localTime.textContent = new Intl.DateTimeFormat("en-MY", {
+        timeZone:"Asia/Kuala_Lumpur",
+        hour:"2-digit",
+        minute:"2-digit",
+        second:"2-digit",
+        hour12:false
+      }).format(now);
+
+    }
+
+
+    /* =========================================================
+       FILTER + SORT
+    ========================================================= */
+
+    function getFilteredFlights() {
+      const query = searchInput.value.trim().toLowerCase();
+      const terminal = terminalFilter.value;
+      const wantedStatus = statusFilter.value;
+      const sort = sortSelect.value;
+
+      let output = flights.filter(flight => {
+        const haystack = [
+          flight.flight,
+          flight.destination,
+          flight.airline,
+          flight.terminal,
+          flight.checkInCounter,
+          flight.boardingGate,
+          flight.arrivalGate,
+          flight.baggage,
+          flight.checkInTime,
+          flight.status
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        const matchesQuery = !query || haystack.includes(query);
+        const matchesTerminal =
+          terminal === "ALL" ||
+          normalizeTerminal(flight.terminal) === terminal;
+
+        const matchesStatus =
+          wantedStatus === "ALL" ||
+          normalizeStatus(flight.status) === wantedStatus;
+
+        return matchesQuery && matchesTerminal && matchesStatus;
+      });
+
+      output.sort((a,b) => {
+        const aUpdated = flightUpdateTimes.get(getFlightKey(a)) || 0;
+        const bUpdated = flightUpdateTimes.get(getFlightKey(b)) || 0;
+
+        // Most recently changed flight always appears first.
+        if (aUpdated !== bUpdated) {
+          return bUpdated - aUpdated;
+        }
+
+        // For flights with the same update priority, keep the selected sort.
+        if (sort === "TIME_DESC") {
+          return minutesFromTime(b.time) - minutesFromTime(a.time);
+        }
+
+        if (sort === "FLIGHT_ASC") {
+          return String(a.flight).localeCompare(String(b.flight));
+        }
+
+        return minutesFromTime(a.time) - minutesFromTime(b.time);
+      });
+
+      return output;
+    }
+
+
+    /* =========================================================
+       RENDER
+    ========================================================= */
+
+    function renderFlights() {
+      const output = getFilteredFlights();
+      visibleFlights.textContent = `${output.length} / ${flights.length}`;
+
+      if (!output.length) {
+        flightRows.innerHTML = `
+          <tr>
+            <td class="empty" colspan="9">
+              Loading all live Trip.com departures…
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      const animatedKeys = new Set(pendingAnimatedKeys);
+
+      flightRows.innerHTML = output.map(flight => {
+        const rawStatus = safeValue(flight.status, "Scheduled");
+        const status = normalizeStatus(rawStatus);
+        const flightKey = getFlightKey(flight);
+        const rowClass = animatedKeys.has(flightKey) ? "row-updated" : "";
+
+        const estimated = flight.estimatedTime
+          ? `<span class="subcell">Est. ${escapeHtml(flight.estimatedTime)}</span>`
+          : "";
+
+        const checkInTime = safeValue(flight.checkInTime);
+        const checkInActive = isWithinCheckInWindow(checkInTime);
+
+        return `
+          <tr class="${rowClass}" data-flight-key="${escapeHtml(flightKey)}">
+            <td>
+              <span class="time">${escapeHtml(safeValue(flight.time, "--:--"))}</span>
+              ${estimated}
+              <span class="checkin-time ${checkInActive ? "active" : ""}">
+                Check-in Time: ${escapeHtml(checkInTime)}
+              </span>
+            </td>
+
+            <td>
+              <span class="flight-no">${escapeHtml(safeValue(flight.flight, "—"))}</span>
+              <span class="subcell">${escapeHtml(safeValue(flight.airline, "—"))}</span>
+            </td>
+
+            <td>
+              <span class="route">${escapeHtml(safeValue(flight.destination, "—"))}</span>
+            </td>
+
+            <td>
+              <span class="terminal">${escapeHtml(normalizeTerminal(flight.terminal))}</span>
+            </td>
+
+            <td>
+              <span class="info-value">${escapeHtml(safeValue(flight.checkInCounter))}</span>
+            </td>
+
+            <td>
+              <span class="info-value">${escapeHtml(safeValue(flight.boardingGate))}</span>
+            </td>
+
+            <td>
+              <span class="info-value">${escapeHtml(safeValue(flight.arrivalGate))}</span>
+            </td>
+
+            <td>
+              <span class="info-value">${escapeHtml(safeValue(flight.baggage))}</span>
+            </td>
+
+            <td>
+              <span class="status ${statusClass(rawStatus)}">
+                ${escapeHtml(rawStatus)}
+              </span>
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      // Flip animation is one-shot. New changes will add the key again.
+      pendingAnimatedKeys.clear();
+    }
+
+
+    /* =========================================================
+       LIVE API
+    ========================================================= */
+
+    let hasLiveData = false;
+
+    async function fetchLiveFlights() {
+      /*
+        LIVE GITHUB PAGES MODE
+        ----------------------
+        flights.json is regenerated directly from Trip.com by the included
+        GitHub Action. This page always requests the newest committed JSON
+        with a cache-busting query string.
+      */
+
+      try {
+        const response = await fetch(
+          `${LIVE_FLIGHTS_URL}?v=${Date.now()}`,
+          {
+            method:"GET",
+            headers:{ "Accept":"application/json" },
+            cache:"no-store"
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const payload = await response.json();
+        const incomingFlights = Array.isArray(payload)
+          ? payload
+          : payload.flights;
+
+        if (!Array.isArray(incomingFlights)) {
+          throw new Error("flights.json does not contain a flights array.");
+        }
+
+        const nextFlights = incomingFlights.map(item => ({
+          time:
+            item.time ??
+            item.departureTime ??
+            item.scheduledTime ??
+            "--:--",
+
+          checkInTime:
+            item.checkInTime ??
+            item.checkinTime ??
+            item.checkInOpen ??
+            item.checkInWindow ??
+            "TBA",
+
+          flight:
+            item.flight ??
+            item.flightNumber ??
+            item.flightNo ??
+            "—",
+
+          destination:
+            item.destination ??
+            item.to ??
+            item.route ??
+            "—",
+
+          airline:
+            item.airline ??
+            item.carrier ??
+            "—",
+
+          terminal:
+            normalizeTerminal(item.terminal ?? "--"),
+
+          checkInCounter:
+            item.checkInCounter ??
+            item.checkinCounter ??
+            item.counter ??
+            "TBA",
+
+          boardingGate:
+            item.boardingGate ??
+            item.gate ??
+            item.departureGate ??
+            "TBA",
+
+          arrivalGate:
+            item.arrivalGate ??
+            item.destinationGate ??
+            "TBA",
+
+          baggage:
+            item.baggage ??
+            item.baggageBelt ??
+            item.belt ??
+            item.carousel ??
+            "TBA",
+
+          // Keep the exact Trip.com wording:
+          // e.g. "Delayed until 15:29", "En route", "Cancelled".
+          status:
+            safeValue(item.status, "Scheduled"),
+
+          estimatedTime:
+            item.estimatedTime ??
+            item.estimatedDeparture ??
+            "",
+
+          detailUrl:
+            item.detailUrl ??
+            ""
+        }));
+
+        const nextSnapshot = new Map(
+          nextFlights.map(flight => [getFlightKey(flight), flight])
+        );
+
+        const changedKeys = new Set();
+
+        if (hasLiveData) {
+          const updateMoment = Date.now();
+
+          for (const flight of nextFlights) {
+            const key = getFlightKey(flight);
+            const previousFlight = previousFlightSnapshot.get(key);
+
+            if (!previousFlight || didFlightChange(previousFlight, flight)) {
+              changedKeys.add(key);
+
+              flightUpdateTimes.set(
+                key,
+                updateMoment - changedKeys.size
+              );
+            }
+          }
+        }
+
+        flights = nextFlights;
+        previousFlightSnapshot = nextSnapshot;
+        hasLiveData = true;
+
+        if (changedKeys.size) {
+          pendingAnimatedKeys = changedKeys;
+        }
+
+        renderFlights();
+
+        if (changedKeys.size) {
+          const tableWrap = document.querySelector(".table-wrap");
+
+          if (tableWrap) {
+            tableWrap.scrollTo({
+              top:0,
+              behavior:"smooth"
+            });
+          }
+        }
+
+      } catch (error) {
+        // Never fall back to the old 10-row demo list.
+        console.debug("Live Trip.com JSON unavailable:", error.message);
+      }
+    }
+
+
+    /* =========================================================
+       EVENTS
+    ========================================================= */
+
+    searchInput.addEventListener("input", renderFlights);
+    terminalFilter.addEventListener("change", renderFlights);
+    statusFilter.addEventListener("change", renderFlights);
+    sortSelect.addEventListener("change", renderFlights);
+
+    setInterval(updateClock, 1000);
+
+    // Re-evaluate check-in windows every 30 seconds so blink state changes promptly.
+    setInterval(renderFlights, 30 * 1000);
+
+    setInterval(() => {
+      fetchLiveFlights();
+    }, AUTO_REFRESH_MS);
+
+
+
+    /* =========================================================
+       START
+    ========================================================= */
+
+    updateClock();
+
+    // Show loading state, then load the complete Trip.com data file.
+    renderFlights();
+    fetchLiveFlights();
+  </script>
+</body>
+</html>

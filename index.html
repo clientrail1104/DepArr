@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#eef3f6" />
-  <title>KLIA Terminal 1 & 2 Flight Tracker</title>
+  <title>KLIA Flight Tracker</title>
 
   <style>
     :root{
@@ -13,43 +13,38 @@
       --text:#17212b;
       --muted:#74808c;
       --line:rgba(21,34,46,.10);
-      --shadow-dark:rgba(157,171,181,.48);
+      --shadow-dark:rgba(157,171,181,.46);
       --shadow-light:rgba(255,255,255,.92);
 
       --green:#1c8c5d;
       --green-bg:#e4f5ec;
-
       --blue:#2169b1;
       --blue-bg:#e6f0fb;
-
       --amber:#a96500;
       --amber-bg:#fff1cf;
-
       --orange:#c85e00;
       --orange-bg:#fff0de;
-
       --red:#bf3440;
       --red-bg:#ffe5e8;
-
       --grey:#65707b;
       --grey-bg:#e7ebef;
 
-      --radius-xl:28px;
-      --radius-lg:20px;
-      --radius-md:15px;
+      --radius-xl:22px;
+      --radius-lg:16px;
+      --radius-md:12px;
     }
 
-    *{
-      box-sizing:border-box;
-    }
+    *{ box-sizing:border-box; }
 
-    html{
-      scroll-behavior:smooth;
+    html, body{
+      margin:0;
+      width:100%;
+      min-height:100%;
     }
 
     body{
-      margin:0;
-      min-height:100vh;
+      height:100dvh;
+      overflow:hidden;
       font-family:
         Inter,
         ui-sans-serif,
@@ -61,324 +56,305 @@
         Arial,
         sans-serif;
       background:
-        radial-gradient(circle at 15% 10%, rgba(255,255,255,.85), transparent 25%),
-        radial-gradient(circle at 90% 0%, rgba(255,255,255,.55), transparent 24%),
+        radial-gradient(circle at 15% 8%, rgba(255,255,255,.80), transparent 24%),
+        radial-gradient(circle at 90% 0%, rgba(255,255,255,.50), transparent 22%),
         var(--bg);
       color:var(--text);
     }
 
-    button,
-    input,
-    select{
-      font:inherit;
-    }
-
-    button{
-      cursor:pointer;
-    }
-
-    a{
-      color:inherit;
-    }
+    button, input, select{ font:inherit; }
+    button{ cursor:pointer; }
+    a{ color:inherit; }
 
     .app{
-      width:min(1440px, calc(100% - 28px));
+      width:min(1500px, calc(100% - 18px));
+      height:100dvh;
       margin:0 auto;
-      padding:22px 0 40px;
+      padding:10px 0;
+      display:grid;
+      grid-template-rows:auto auto auto minmax(0,1fr);
+      gap:9px;
     }
 
+    .card{
+      background:rgba(238,243,246,.94);
+      border:1px solid rgba(255,255,255,.58);
+      border-radius:var(--radius-xl);
+      box-shadow:
+        9px 9px 20px var(--shadow-dark),
+        -9px -9px 20px var(--shadow-light);
+    }
+
+    /* =========================
+       TOP BAR
+    ========================= */
+
     .topbar{
+      min-height:52px;
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:18px;
-      margin-bottom:20px;
+      gap:14px;
+      padding:0 4px;
     }
 
     .brand{
       display:flex;
       align-items:center;
-      gap:13px;
+      gap:10px;
       min-width:0;
     }
 
     .brand-mark{
-      width:48px;
-      height:48px;
-      border-radius:17px;
+      width:42px;
+      height:42px;
+      border-radius:14px;
       display:grid;
       place-items:center;
       flex:0 0 auto;
       background:var(--panel);
       box-shadow:
-        8px 8px 18px var(--shadow-dark),
-        -8px -8px 18px var(--shadow-light);
-      font-size:23px;
+        5px 5px 12px var(--shadow-dark),
+        -5px -5px 12px var(--shadow-light);
+      font-size:20px;
     }
 
-    .brand-copy{
-      min-width:0;
-    }
+    .brand-copy{ min-width:0; }
 
     .eyebrow{
-      margin:0 0 3px;
-      font-size:11px;
-      font-weight:800;
-      letter-spacing:.13em;
+      margin:0 0 2px;
+      font-size:9px;
+      font-weight:850;
+      letter-spacing:.12em;
       text-transform:uppercase;
       color:var(--muted);
     }
 
     h1{
       margin:0;
-      font-size:clamp(20px, 2.3vw, 31px);
-      line-height:1.08;
-      letter-spacing:-.03em;
+      font-size:clamp(18px, 2vw, 27px);
+      line-height:1;
+      letter-spacing:-.035em;
     }
 
     .source-link{
       text-decoration:none;
-      padding:11px 14px;
-      border-radius:14px;
+      padding:9px 12px;
+      border-radius:12px;
       color:#4e5c68;
-      font-size:12px;
-      font-weight:750;
+      font-size:11px;
+      font-weight:800;
       white-space:nowrap;
       background:var(--panel);
       box-shadow:
-        6px 6px 14px var(--shadow-dark),
-        -6px -6px 14px var(--shadow-light);
-      transition:.2s ease;
+        5px 5px 11px var(--shadow-dark),
+        -5px -5px 11px var(--shadow-light);
+      transition:.18s ease;
     }
 
-    .source-link:hover{
-      transform:translateY(-1px);
-    }
+    .source-link:hover{ transform:translateY(-1px); }
 
-    .hero{
+    /* =========================
+       COMPACT SUMMARY
+    ========================= */
+
+    .summary{
+      min-height:84px;
       display:grid;
-      grid-template-columns:minmax(0, 1.3fr) minmax(300px, .7fr);
-      gap:18px;
-      margin-bottom:18px;
+      grid-template-columns:minmax(310px, 1.5fr) repeat(4, minmax(115px, .5fr));
+      gap:8px;
+      padding:10px;
     }
 
-    .card{
-      background:rgba(238,243,246,.92);
-      border:1px solid rgba(255,255,255,.58);
-      border-radius:var(--radius-xl);
-      box-shadow:
-        14px 14px 32px var(--shadow-dark),
-        -14px -14px 32px var(--shadow-light);
-    }
-
-    .intro{
-      padding:26px;
+    .summary-main{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:24px;
-      min-height:174px;
-      overflow:hidden;
-      position:relative;
+      gap:14px;
+      min-width:0;
+      padding:5px 8px 5px 10px;
     }
 
-    .intro:after{
-      content:"";
-      position:absolute;
-      width:220px;
-      height:220px;
-      border-radius:50%;
-      right:-85px;
-      top:-105px;
-      background:rgba(255,255,255,.35);
-      box-shadow:inset 10px 10px 30px rgba(167,181,191,.2);
-    }
-
-    .intro-copy{
-      position:relative;
-      z-index:1;
-    }
-
-    .intro-title{
+    .summary-main h2{
       margin:0;
-      font-size:clamp(28px, 4.5vw, 56px);
-      line-height:.98;
-      letter-spacing:-.055em;
-      max-width:720px;
+      font-size:clamp(20px, 2.7vw, 34px);
+      line-height:1;
+      letter-spacing:-.045em;
     }
 
-    .intro-sub{
-      margin:13px 0 0;
-      max-width:710px;
+    .summary-main p{
+      margin:5px 0 0;
       color:var(--muted);
-      line-height:1.55;
-      font-size:14px;
+      font-size:11px;
+      line-height:1.3;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
 
     .airport-chip{
-      position:relative;
-      z-index:1;
-      width:118px;
-      height:118px;
-      border-radius:31px;
+      width:70px;
+      height:62px;
+      border-radius:18px;
       flex:0 0 auto;
       display:grid;
       place-items:center;
       text-align:center;
       background:var(--panel);
       box-shadow:
-        inset 7px 7px 15px rgba(170,183,192,.42),
-        inset -7px -7px 15px rgba(255,255,255,.92);
+        inset 5px 5px 10px rgba(170,183,192,.38),
+        inset -5px -5px 10px rgba(255,255,255,.92);
     }
 
     .airport-chip strong{
       display:block;
-      font-size:30px;
+      font-size:22px;
       line-height:1;
     }
 
     .airport-chip span{
       display:block;
-      margin-top:5px;
+      margin-top:3px;
       color:var(--muted);
-      font-size:10px;
-      font-weight:800;
-      letter-spacing:.12em;
-    }
-
-    .stats{
-      padding:20px;
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:14px;
+      font-size:7px;
+      font-weight:900;
+      letter-spacing:.11em;
     }
 
     .metric{
-      border-radius:18px;
-      padding:16px;
-      min-height:72px;
+      border-radius:14px;
+      padding:10px 11px;
+      min-height:62px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
       background:var(--panel);
       box-shadow:
-        inset 4px 4px 9px rgba(166,180,189,.36),
-        inset -4px -4px 9px rgba(255,255,255,.92);
+        inset 3px 3px 7px rgba(166,180,189,.32),
+        inset -3px -3px 7px rgba(255,255,255,.90);
     }
 
     .metric-label{
       color:var(--muted);
-      font-size:10px;
-      font-weight:800;
+      font-size:8px;
+      font-weight:850;
       text-transform:uppercase;
-      letter-spacing:.12em;
+      letter-spacing:.1em;
     }
 
     .metric-value{
       display:block;
-      margin-top:6px;
-      font-size:18px;
-      font-weight:850;
+      margin-top:4px;
+      font-size:15px;
+      font-weight:900;
       letter-spacing:-.02em;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
 
-    .controls{
-      padding:18px;
-      margin-bottom:18px;
-    }
+    /* =========================
+       CONTROLS
+    ========================= */
+
+    .controls{ padding:9px; }
 
     .control-grid{
       display:grid;
-      grid-template-columns:minmax(220px, 1fr) repeat(3, minmax(140px, 185px)) auto;
-      gap:12px;
+      grid-template-columns:minmax(240px, 1.35fr) repeat(3, minmax(130px, .45fr)) auto;
+      gap:8px;
       align-items:center;
     }
 
-    .field,
-    .select,
-    .refresh-btn{
-      height:48px;
+    .field, .select, .refresh-btn{
+      height:38px;
       border:0;
       outline:0;
-      border-radius:15px;
+      border-radius:11px;
       background:var(--panel);
       color:var(--text);
       box-shadow:
-        inset 4px 4px 9px rgba(166,180,189,.34),
-        inset -4px -4px 9px rgba(255,255,255,.92);
+        inset 3px 3px 7px rgba(166,180,189,.32),
+        inset -3px -3px 7px rgba(255,255,255,.90);
     }
 
     .field{
       width:100%;
-      padding:0 16px;
+      padding:0 12px;
+      font-size:12px;
     }
 
-    .field::placeholder{
-      color:#98a1a9;
-    }
+    .field::placeholder{ color:#98a1a9; }
 
     .select{
       width:100%;
-      padding:0 13px;
-      appearance:auto;
+      padding:0 10px;
+      font-size:11px;
     }
 
     .refresh-btn{
-      padding:0 17px;
-      font-weight:800;
+      padding:0 13px;
+      font-size:11px;
+      font-weight:900;
       box-shadow:
-        6px 6px 13px var(--shadow-dark),
-        -6px -6px 13px var(--shadow-light);
-      transition:.2s ease;
+        4px 4px 10px var(--shadow-dark),
+        -4px -4px 10px var(--shadow-light);
+      transition:.18s ease;
     }
 
-    .refresh-btn:hover{
-      transform:translateY(-1px);
-    }
+    .refresh-btn:hover{ transform:translateY(-1px); }
 
-    .refresh-btn:active{
-      transform:translateY(1px);
-      box-shadow:
-        inset 3px 3px 8px rgba(166,180,189,.36),
-        inset -3px -3px 8px rgba(255,255,255,.85);
-    }
+    /* =========================
+       BOARD
+    ========================= */
 
     .board{
+      min-height:0;
       overflow:hidden;
+      display:grid;
+      grid-template-rows:auto minmax(0,1fr);
     }
 
     .board-head{
-      padding:21px 22px 16px;
+      padding:11px 14px 9px;
       display:flex;
       justify-content:space-between;
-      align-items:flex-end;
-      gap:16px;
+      align-items:center;
+      gap:12px;
       border-bottom:1px solid var(--line);
     }
 
     .board-title{
       margin:0;
-      font-size:20px;
+      font-size:16px;
       letter-spacing:-.02em;
     }
 
     .board-note{
-      margin:5px 0 0;
-      font-size:12px;
+      margin:3px 0 0;
+      font-size:9px;
       color:var(--muted);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width:70vw;
     }
 
     .live-pill{
       display:inline-flex;
       align-items:center;
-      gap:8px;
+      gap:6px;
       color:var(--green);
-      font-size:11px;
-      font-weight:850;
+      font-size:9px;
+      font-weight:900;
       text-transform:uppercase;
-      letter-spacing:.09em;
+      letter-spacing:.08em;
+      white-space:nowrap;
     }
 
     .live-dot{
-      width:8px;
-      height:8px;
+      width:7px;
+      height:7px;
       border-radius:50%;
       background:var(--green);
       animation:pulse 1.7s infinite;
@@ -386,112 +362,139 @@
 
     @keyframes pulse{
       0%{box-shadow:0 0 0 0 rgba(28,140,93,.42)}
-      65%{box-shadow:0 0 0 8px rgba(28,140,93,0)}
+      65%{box-shadow:0 0 0 7px rgba(28,140,93,0)}
       100%{box-shadow:0 0 0 0 rgba(28,140,93,0)}
     }
 
     .table-wrap{
-      overflow-x:auto;
+      min-height:0;
+      overflow:auto;
+      scrollbar-width:thin;
+      scrollbar-color:#bdc9d1 transparent;
     }
 
     table{
       width:100%;
-      border-collapse:collapse;
-      min-width:940px;
+      border-collapse:separate;
+      border-spacing:0;
+      min-width:1180px;
+      table-layout:fixed;
+    }
+
+    thead{
+      position:sticky;
+      top:0;
+      z-index:3;
+      background:#eef3f6;
     }
 
     th{
-      padding:13px 18px;
+      padding:8px 9px;
       text-align:left;
-      font-size:10px;
+      font-size:8px;
       color:var(--muted);
       text-transform:uppercase;
-      letter-spacing:.1em;
-      font-weight:850;
+      letter-spacing:.08em;
+      font-weight:900;
       border-bottom:1px solid var(--line);
+      white-space:nowrap;
     }
 
     td{
-      padding:17px 18px;
-      border-bottom:1px solid rgba(21,34,46,.07);
+      padding:9px 9px;
+      border-bottom:1px solid rgba(21,34,46,.065);
       vertical-align:middle;
-      font-size:13px;
+      font-size:11px;
+      line-height:1.2;
+      overflow:hidden;
     }
 
-    tbody tr{
-      transition:.18s ease;
-    }
-
-    tbody tr:hover{
-      background:rgba(255,255,255,.28);
-    }
-
-    tbody tr:last-child td{
-      border-bottom:0;
-    }
+    tbody tr{ transition:.15s ease; }
+    tbody tr:hover{ background:rgba(255,255,255,.28); }
+    tbody tr:last-child td{ border-bottom:0; }
 
     .time{
-      font-size:18px;
-      font-weight:850;
+      font-size:15px;
+      font-weight:900;
       letter-spacing:-.03em;
       white-space:nowrap;
     }
 
     .flight-no{
-      font-weight:850;
-      font-size:15px;
+      font-weight:900;
+      font-size:12px;
       white-space:nowrap;
     }
 
     .airline{
       color:#4f5e6a;
-      font-weight:650;
+      font-weight:700;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      display:block;
     }
 
     .route{
-      font-weight:760;
+      font-weight:800;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      display:block;
     }
 
     .subcell{
       display:block;
       color:var(--muted);
-      font-size:10px;
-      margin-top:3px;
-      font-weight:600;
+      font-size:8px;
+      margin-top:2px;
+      font-weight:700;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
 
     .terminal{
       display:inline-grid;
       place-items:center;
-      min-width:38px;
-      height:31px;
-      padding:0 9px;
-      border-radius:11px;
-      font-weight:850;
+      min-width:34px;
+      height:27px;
+      padding:0 7px;
+      border-radius:9px;
+      font-weight:900;
+      font-size:10px;
       background:var(--panel);
       box-shadow:
-        inset 3px 3px 7px rgba(164,178,188,.31),
-        inset -3px -3px 7px rgba(255,255,255,.9);
+        inset 2px 2px 6px rgba(164,178,188,.29),
+        inset -2px -2px 6px rgba(255,255,255,.88);
+    }
+
+    .info-value{
+      display:block;
+      font-weight:850;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
 
     .status{
       display:inline-flex;
       align-items:center;
-      gap:7px;
-      min-height:32px;
-      padding:7px 11px;
+      gap:5px;
+      min-height:27px;
+      padding:5px 8px;
       border-radius:999px;
-      font-size:10px;
-      font-weight:900;
-      letter-spacing:.035em;
+      font-size:8px;
+      font-weight:950;
+      letter-spacing:.025em;
       white-space:nowrap;
       text-transform:uppercase;
     }
 
     .status:before{
       content:"";
-      width:7px;
-      height:7px;
+      width:6px;
+      height:6px;
       border-radius:50%;
       background:currentColor;
     }
@@ -541,42 +544,37 @@
     .empty{
       text-align:center;
       color:var(--muted);
-      padding:38px !important;
+      padding:26px !important;
     }
 
-    .footer{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:14px;
-      padding:16px 3px 0;
-      color:var(--muted);
-      font-size:11px;
-      line-height:1.5;
-    }
-
-    .footer a{
-      font-weight:800;
-      text-decoration:none;
-    }
+    /* fixed column widths for one-screen desktop readability */
+    th:nth-child(1), td:nth-child(1){ width:120px; }
+    th:nth-child(2), td:nth-child(2){ width:150px; }
+    th:nth-child(3), td:nth-child(3){ width:150px; }
+    th:nth-child(4), td:nth-child(4){ width:70px; }
+    th:nth-child(5), td:nth-child(5){ width:120px; }
+    th:nth-child(6), td:nth-child(6){ width:100px; }
+    th:nth-child(7), td:nth-child(7){ width:100px; }
+    th:nth-child(8), td:nth-child(8){ width:100px; }
+    th:nth-child(9), td:nth-child(9){ width:115px; }
 
     .toast{
       position:fixed;
-      right:18px;
-      bottom:18px;
+      right:14px;
+      bottom:14px;
       z-index:20;
-      max-width:min(420px, calc(100% - 36px));
-      padding:13px 15px;
-      border-radius:15px;
+      max-width:min(400px, calc(100% - 28px));
+      padding:10px 12px;
+      border-radius:12px;
       background:rgba(32,42,52,.92);
       color:white;
-      font-size:12px;
-      line-height:1.45;
-      box-shadow:0 10px 35px rgba(0,0,0,.18);
+      font-size:10px;
+      line-height:1.4;
+      box-shadow:0 10px 30px rgba(0,0,0,.18);
       opacity:0;
-      transform:translateY(14px);
+      transform:translateY(12px);
       pointer-events:none;
-      transition:.25s ease;
+      transition:.22s ease;
     }
 
     .toast.show{
@@ -584,124 +582,127 @@
       transform:translateY(0);
     }
 
+    /* =========================
+       RESPONSIVE
+    ========================= */
+
     @media (max-width:1050px){
-      .hero{
-        grid-template-columns:1fr;
+      .summary{
+        grid-template-columns:minmax(250px, 1.4fr) repeat(2, minmax(110px,.55fr));
+      }
+
+      .metric:nth-of-type(3),
+      .metric:nth-of-type(4){
+        display:none;
       }
 
       .control-grid{
-        grid-template-columns:1fr 1fr 1fr;
+        grid-template-columns:minmax(220px,1.3fr) 1fr 1fr auto;
       }
 
-      .control-grid .search-wrap{
-        grid-column:1 / -1;
-      }
-
-      .refresh-btn{
-        width:100%;
-      }
+      #sortSelect{ display:none; }
     }
 
-    @media (max-width:720px){
+    @media (max-width:760px){
       .app{
-        width:min(100% - 18px, 1440px);
-        padding-top:12px;
+        width:calc(100% - 10px);
+        padding:6px 0;
+        gap:6px;
       }
 
-      .topbar{
-        align-items:flex-start;
+      .topbar{ min-height:44px; }
+
+      .brand-mark{
+        width:38px;
+        height:38px;
+        border-radius:12px;
       }
 
       .source-link{
         font-size:0;
-        width:45px;
-        height:45px;
+        width:40px;
+        height:40px;
         padding:0;
         display:grid;
         place-items:center;
       }
 
-      .source-link:after{
+      .source-link::after{
         content:"↗";
-        font-size:18px;
+        font-size:17px;
       }
 
-      .intro{
-        min-height:auto;
-        padding:21px;
+      .summary{
+        min-height:68px;
+        padding:7px;
+        grid-template-columns:1fr 90px;
       }
 
-      .airport-chip{
-        width:82px;
-        height:82px;
-        border-radius:23px;
+      .summary-main{
+        padding:3px 4px;
       }
 
-      .airport-chip strong{
-        font-size:24px;
+      .summary-main h2{ font-size:20px; }
+      .summary-main p{ font-size:9px; max-width:68vw; }
+      .airport-chip{ display:none; }
+
+      .metric{
+        min-height:52px;
+        padding:8px;
       }
 
-      .airport-chip span{
-        font-size:8px;
-      }
-
-      .stats{
-        grid-template-columns:1fr 1fr;
-      }
-
-      .control-grid{
-        grid-template-columns:1fr 1fr;
-      }
-
-      .control-grid .search-wrap{
-        grid-column:1 / -1;
-      }
-
-      .refresh-btn{
-        grid-column:1 / -1;
-      }
-
-      .board-head{
-        align-items:center;
-      }
-
-      .footer{
-        display:block;
-      }
-    }
-
-    @media (max-width:480px){
-      .brand-mark{
-        width:43px;
-        height:43px;
-      }
-
-      .intro{
-        align-items:flex-start;
-      }
-
-      .airport-chip{
+      .metric:nth-of-type(2),
+      .metric:nth-of-type(3),
+      .metric:nth-of-type(4){
         display:none;
       }
 
-      .stats{
-        grid-template-columns:1fr 1fr;
-        padding:14px;
-        gap:10px;
-      }
-
-      .metric{
-        padding:13px;
-      }
+      .controls{ padding:7px; }
 
       .control-grid{
-        grid-template-columns:1fr;
+        grid-template-columns:1fr 105px auto;
+        gap:6px;
       }
 
-      .control-grid .search-wrap,
-      .refresh-btn{
-        grid-column:auto;
+      #statusFilter,
+      #sortSelect{
+        display:none;
       }
+
+      .field, .select, .refresh-btn{
+        height:34px;
+        font-size:10px;
+      }
+
+      .board-head{
+        padding:8px 10px;
+      }
+
+      .board-title{ font-size:14px; }
+      .board-note{ font-size:8px; max-width:62vw; }
+
+      table{ min-width:1120px; }
+
+      th{ padding:7px 8px; }
+      td{ padding:8px; }
+
+      .toast{
+        right:8px;
+        bottom:8px;
+      }
+    }
+
+    @media (max-height:700px){
+      .summary{ min-height:70px; }
+      .summary-main h2{ font-size:22px; }
+      .summary-main p{ font-size:9px; }
+      .metric{ min-height:50px; padding:8px 9px; }
+      .metric-value{ font-size:13px; }
+      .controls{ padding:7px; }
+      .field, .select, .refresh-btn{ height:34px; }
+      .board-head{ padding:8px 12px; }
+      td{ padding-top:7px; padding-bottom:7px; }
+      th{ padding-top:6px; padding-bottom:6px; }
     }
   </style>
 </head>
@@ -713,62 +714,66 @@
       <div class="brand">
         <div class="brand-mark" aria-hidden="true">✈</div>
         <div class="brand-copy">
+          <p class="eyebrow">Kuala Lumpur International Airport</p>
           <h1>Flight Tracker</h1>
         </div>
       </div>
+
+      <a
+        class="source-link"
+        href="https://www.trip.com/flights/status/kul/?&allianceid=14900&sid=4141571&ppcid=ckid-56229731667_adid-515041284145_akid-kwd-342372378891_adgid-119626675423&utm_source=google&utm_medium=cpc&utm_campaign=12766215807&gad_source=1&gad_campaignid=12766215807&gbraid=0AAAAABn2eFI48elC_6GPsErhTTF2zxoe4&gclid=Cj0KCQjw--7UBhCpARIsAGJBpth3wiRfvcug135vSGpTdTpcWbKH95ZgkO1JBsyw5HnHWtEZsNdWOcUaAqbJEALw_wcB"
+        target="_blank"
+        rel="noopener noreferrer"
+        title="Open Trip.com KUL flight status"
+      >Trip.com Status ↗</a>
     </header>
 
-    <section class="hero">
-      <article class="card intro">
-        <div class="intro-copy">
-          <p class="eyebrow">Departures • Kuala Lumpur International Airport</p>
-          <h2 class="intro-title">Your flight, at a glance.</h2>
-          <p class="intro-sub">
-            Search KLIA Terminal 1 and 2 departures by flight number, destination or airline.
-          </p>
+    <section class="card summary">
+      <div class="summary-main">
+        <div>
+          <p class="eyebrow">Departures • Terminal 1 & 2</p>
+          <h2>Your flight, at a glance.</h2>
+          <p>Departure, check-in, boarding, arrival gate and baggage details in one compact screen.</p>
         </div>
 
         <div class="airport-chip" aria-label="Kuala Lumpur airport code KUL">
           <div>
             <strong>KUL</strong>
-            <span>TERMINAL 1</span>
+            <span>T1 / T2</span>
           </div>
         </div>
-      </article>
+      </div>
 
-      <aside class="card stats">
-        <div class="metric">
-          <span class="metric-label">Local time</span>
-          <strong class="metric-value" id="localTime">--:--</strong>
-        </div>
+      <div class="metric">
+        <span class="metric-label">Local time</span>
+        <strong class="metric-value" id="localTime">--:--</strong>
+      </div>
 
-        <div class="metric">
-          <span class="metric-label">Date</span>
-          <strong class="metric-value" id="localDate">--</strong>
-        </div>
+      <div class="metric">
+        <span class="metric-label">Date</span>
+        <strong class="metric-value" id="localDate">--</strong>
+      </div>
 
-        <div class="metric">
-          <span class="metric-label">Visible flights</span>
-          <strong class="metric-value" id="visibleFlights">0</strong>
-        </div>
+      <div class="metric">
+        <span class="metric-label">Visible flights</span>
+        <strong class="metric-value" id="visibleFlights">0</strong>
+      </div>
 
-        <div class="metric">
-          <span class="metric-label">Data mode</span>
-          <strong class="metric-value" id="dataMode">Demo</strong>
-        </div>
-      </aside>
+      <div class="metric">
+        <span class="metric-label">Data mode</span>
+        <strong class="metric-value" id="dataMode">Demo</strong>
+      </div>
     </section>
 
     <section class="card controls" aria-label="Flight filters">
       <div class="control-grid">
-
         <div class="search-wrap">
           <input
             class="field"
             id="searchInput"
             type="search"
             autocomplete="off"
-            placeholder="Search flight no., destination or airline"
+            placeholder="Search flight, destination, airline, counter, gate or baggage"
             aria-label="Search flights"
           />
         </div>
@@ -799,16 +804,14 @@
           <option value="FLIGHT_ASC">Flight A–Z</option>
         </select>
 
-        <button class="refresh-btn" id="refreshBtn" type="button">
-          ↻ Refresh
-        </button>
+        <button class="refresh-btn" id="refreshBtn" type="button">↻ Refresh</button>
       </div>
     </section>
 
     <section class="card board">
       <div class="board-head">
         <div>
-          <h2 class="board-title">Departures</h2>
+          <h2 class="board-title">Flight Information</h2>
           <p class="board-note" id="lastUpdated">Waiting for flight data…</p>
         </div>
 
@@ -819,15 +822,17 @@
       </div>
 
       <div class="table-wrap">
-        <table aria-label="KLIA flight departure status">
+        <table aria-label="KLIA flight status and passenger handling details">
           <thead>
             <tr>
-              <th>Time</th>
-              <th>Flight</th>
+              <th>Departure / Check-in</th>
+              <th>Flight / Airline</th>
               <th>Destination</th>
-              <th>Airline</th>
               <th>Terminal</th>
-              <th>Gate</th>
+              <th>Check-in Counter</th>
+              <th>Boarding Gate</th>
+              <th>Arrival Gate</th>
+              <th>Baggage</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -837,18 +842,6 @@
       </div>
     </section>
 
-    <footer class="footer">
-      <span>
-        <a
-          href="https://www.trip.com/flights/status/kul/?&allianceid=14900&sid=4141571&ppcid=ckid-56229731667_adid-515041284145_akid-kwd-342372378891_adgid-119626675423&utm_source=google&utm_medium=cpc&utm_campaign=12766215807&gad_source=1&gad_campaignid=12766215807&gbraid=0AAAAABn2eFI48elC_6GPsErhTTF2zxoe4&gclid=Cj0KCQjw--7UBhCpARIsAGJBpth3wiRfvcug135vSGpTdTpcWbKH95ZgkO1JBsyw5HnHWtEZsNdWOcUaAqbJEALw_wcB"
-          target="_blank"
-          rel="noopener noreferrer"
-        ></a>
-      </span>
-
-      <span>
-      </span>
-    </footer>
   </main>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -856,154 +849,196 @@
   <script>
     /* =========================================================
        CONFIGURATION
-       ========================================================= */
+    ========================================================= */
 
     const TRIP_COM_URL =
       "https://www.trip.com/flights/status/kul/?&allianceid=14900&sid=4141571&ppcid=ckid-56229731667_adid-515041284145_akid-kwd-342372378891_adgid-119626675423&utm_source=google&utm_medium=cpc&utm_campaign=12766215807&gad_source=1&gad_campaignid=12766215807&gbraid=0AAAAABn2eFI48elC_6GPsErhTTF2zxoe4&gclid=Cj0KCQjw--7UBhCpARIsAGJBpth3wiRfvcug135vSGpTdTpcWbKH95ZgkO1JBsyw5HnHWtEZsNdWOcUaAqbJEALw_wcB";
 
     /*
-      IMPORTANT:
-      Do not fetch Trip.com directly from frontend JavaScript.
-      Browser CORS / anti-bot controls can block it.
+      Set this to your authorised backend flight-data endpoint.
 
-      For production, set this to your own backend endpoint:
       Example:
-        const LIVE_API_ENDPOINT = "/api/flights/departures";
+      const LIVE_API_ENDPOINT = "/api/flights/departures";
 
-      Expected JSON format:
+      Supported fields:
       {
         "flights": [
           {
             "time": "11:20",
+            "checkInTime": "08:20 - 10:20",
             "flight": "MH720",
             "destination": "Jakarta",
             "airline": "Malaysia Airlines",
             "terminal": "T1",
-            "gate": "C34",
+            "checkInCounter": "A01-A12",
+            "boardingGate": "C34",
+            "arrivalGate": "3",
+            "baggage": "Belt 5",
             "status": "Boarding",
             "estimatedTime": "11:30"
           }
         ]
       }
+
+      The frontend does not scrape Trip.com directly because browser
+      CORS / anti-bot controls can block that approach.
     */
 
     const LIVE_API_ENDPOINT = "";
-
     const AUTO_REFRESH_MS = 60 * 1000;
 
 
     /* =========================================================
        DEMO DATA
-       Replace automatically when LIVE_API_ENDPOINT is connected.
-       ========================================================= */
+    ========================================================= */
 
     const DEMO_FLIGHTS = [
       {
-        time: "10:45",
-        flight: "MH123",
-        destination: "Sydney",
-        airline: "Malaysia Airlines",
-        terminal: "T1",
-        gate: "C21",
-        status: "Departed",
-        estimatedTime: ""
+        time:"10:45",
+        checkInTime:"07:45 - 09:45",
+        flight:"MH123",
+        destination:"Sydney",
+        airline:"Malaysia Airlines",
+        terminal:"T1",
+        checkInCounter:"H01-H12",
+        boardingGate:"C21",
+        arrivalGate:"TBA",
+        baggage:"TBA",
+        status:"Departed",
+        estimatedTime:""
       },
       {
-        time: "11:05",
-        flight: "OD2303",
-        destination: "Kota Bharu",
-        airline: "Batik Air Malaysia",
-        terminal: "T1",
-        gate: "A7",
-        status: "Cancelled",
-        estimatedTime: ""
+        time:"11:05",
+        checkInTime:"08:05 - 10:05",
+        flight:"OD2303",
+        destination:"Kota Bharu",
+        airline:"Batik Air Malaysia",
+        terminal:"T1",
+        checkInCounter:"E05-E10",
+        boardingGate:"A7",
+        arrivalGate:"TBA",
+        baggage:"TBA",
+        status:"Cancelled",
+        estimatedTime:""
       },
       {
-        time: "11:20",
-        flight: "MH720",
-        destination: "Jakarta",
-        airline: "Malaysia Airlines",
-        terminal: "T1",
-        gate: "C34",
-        status: "Boarding",
-        estimatedTime: ""
+        time:"11:20",
+        checkInTime:"08:20 - 10:20",
+        flight:"MH720",
+        destination:"Jakarta",
+        airline:"Malaysia Airlines",
+        terminal:"T1",
+        checkInCounter:"A01-A12",
+        boardingGate:"C34",
+        arrivalGate:"3",
+        baggage:"Belt 5",
+        status:"Boarding",
+        estimatedTime:""
       },
       {
-        time: "11:30",
-        flight: "PR526",
-        destination: "Manila",
-        airline: "Philippine Airlines",
-        terminal: "T1",
-        gate: "C12",
-        status: "Final Call",
-        estimatedTime: ""
+        time:"11:30",
+        checkInTime:"08:30 - 10:30",
+        flight:"PR526",
+        destination:"Manila",
+        airline:"Philippine Airlines",
+        terminal:"T1",
+        checkInCounter:"G01-G08",
+        boardingGate:"C12",
+        arrivalGate:"TBA",
+        baggage:"TBA",
+        status:"Final Call",
+        estimatedTime:""
       },
       {
-        time: "11:45",
-        flight: "SQ107",
-        destination: "Singapore",
-        airline: "Singapore Airlines",
-        terminal: "T1",
-        gate: "B5",
-        status: "On Time",
-        estimatedTime: ""
+        time:"11:45",
+        checkInTime:"08:45 - 10:45",
+        flight:"SQ107",
+        destination:"Singapore",
+        airline:"Singapore Airlines",
+        terminal:"T1",
+        checkInCounter:"J01-J10",
+        boardingGate:"B5",
+        arrivalGate:"B2",
+        baggage:"Belt 4",
+        status:"On Time",
+        estimatedTime:""
       },
       {
-        time: "12:05",
-        flight: "MH88",
-        destination: "Tokyo Narita",
-        airline: "Malaysia Airlines",
-        terminal: "T1",
-        gate: "C6",
-        status: "Scheduled",
-        estimatedTime: ""
+        time:"12:05",
+        checkInTime:"09:05 - 11:05",
+        flight:"MH88",
+        destination:"Tokyo Narita",
+        airline:"Malaysia Airlines",
+        terminal:"T1",
+        checkInCounter:"H13-H24",
+        boardingGate:"C6",
+        arrivalGate:"TBA",
+        baggage:"TBA",
+        status:"Scheduled",
+        estimatedTime:""
       },
       {
-        time: "12:20",
-        flight: "OD182",
-        destination: "Kathmandu",
-        airline: "Batik Air Malaysia",
-        terminal: "T1",
-        gate: "H4R",
-        status: "Delayed",
-        estimatedTime: "13:05"
+        time:"12:20",
+        checkInTime:"09:20 - 11:20",
+        flight:"OD182",
+        destination:"Kathmandu",
+        airline:"Batik Air Malaysia",
+        terminal:"T1",
+        checkInCounter:"E01-E18, F01-F03",
+        boardingGate:"H4R",
+        arrivalGate:"TBA",
+        baggage:"TBA",
+        status:"Delayed",
+        estimatedTime:"13:05"
       },
       {
-        time: "12:40",
-        flight: "EK347",
-        destination: "Dubai",
-        airline: "Emirates",
-        terminal: "T1",
-        gate: "C2",
-        status: "Scheduled",
-        estimatedTime: ""
+        time:"12:40",
+        checkInTime:"09:40 - 11:40",
+        flight:"EK347",
+        destination:"Dubai",
+        airline:"Emirates",
+        terminal:"T1",
+        checkInCounter:"K01-K16",
+        boardingGate:"C2",
+        arrivalGate:"A7",
+        baggage:"Belt 8",
+        status:"Scheduled",
+        estimatedTime:""
       },
       {
-        time: "13:00",
-        flight: "TG416",
-        destination: "Bangkok",
-        airline: "Thai Airways",
-        terminal: "T1",
-        gate: "B8",
-        status: "Scheduled",
-        estimatedTime: ""
+        time:"13:00",
+        checkInTime:"10:00 - 12:00",
+        flight:"TG416",
+        destination:"Bangkok",
+        airline:"Thai Airways",
+        terminal:"T1",
+        checkInCounter:"F08-F15",
+        boardingGate:"B8",
+        arrivalGate:"TBA",
+        baggage:"TBA",
+        status:"Scheduled",
+        estimatedTime:""
       },
       {
-        time: "13:15",
-        flight: "AK512",
-        destination: "Hanoi",
-        airline: "AirAsia",
-        terminal: "T2",
-        gate: "Q10",
-        status: "Scheduled",
-        estimatedTime: ""
+        time:"13:15",
+        checkInTime:"10:15 - 12:15",
+        flight:"AK512",
+        destination:"Hanoi",
+        airline:"AirAsia",
+        terminal:"T2",
+        checkInCounter:"Y01-Y12",
+        boardingGate:"Q10",
+        arrivalGate:"TBA",
+        baggage:"TBA",
+        status:"Scheduled",
+        estimatedTime:""
       }
     ];
 
 
     /* =========================================================
        STATE + DOM
-       ========================================================= */
+    ========================================================= */
 
     let flights = [...DEMO_FLIGHTS];
 
@@ -1024,7 +1059,7 @@
 
     /* =========================================================
        HELPERS
-       ========================================================= */
+    ========================================================= */
 
     function escapeHtml(value = "") {
       return String(value)
@@ -1033,6 +1068,23 @@
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
+    }
+
+    function safeValue(value, fallback = "TBA") {
+      const text = String(value ?? "").trim();
+      return text ? text : fallback;
+    }
+
+    function normalizeTerminal(rawTerminal = "T1") {
+      const text = String(rawTerminal)
+        .trim()
+        .toUpperCase()
+        .replace("TERMINAL ", "T")
+        .replace("TERMINAL", "T");
+
+      if (text === "1") return "T1";
+      if (text === "2") return "T2";
+      return text || "T1";
     }
 
     function normalizeStatus(rawStatus = "") {
@@ -1062,18 +1114,18 @@
       const value = normalizeStatus(status);
 
       const classes = {
-        "SCHEDULED": "status-scheduled",
-        "ON TIME": "status-ontime",
-        "GATE OPEN": "status-gateopen",
-        "BOARDING": "status-boarding",
-        "FINAL CALL": "status-finalcall",
-        "DELAYED": "status-delayed",
-        "CANCELLED": "status-cancelled",
-        "DEPARTED": "status-departed",
-        "EN ROUTE": "status-enroute",
-        "LANDED": "status-landed",
-        "ARRIVED": "status-arrived",
-        "GATE CLOSED": "status-gateclosed"
+        "SCHEDULED":"status-scheduled",
+        "ON TIME":"status-ontime",
+        "GATE OPEN":"status-gateopen",
+        "BOARDING":"status-boarding",
+        "FINAL CALL":"status-finalcall",
+        "DELAYED":"status-delayed",
+        "CANCELLED":"status-cancelled",
+        "DEPARTED":"status-departed",
+        "EN ROUTE":"status-enroute",
+        "LANDED":"status-landed",
+        "ARRIVED":"status-arrived",
+        "GATE CLOSED":"status-gateclosed"
       };
 
       return classes[value] || "status-scheduled";
@@ -1081,52 +1133,48 @@
 
     function minutesFromTime(time) {
       const match = String(time).match(/^(\d{1,2}):(\d{2})$/);
-
       if (!match) return Number.MAX_SAFE_INTEGER;
-
       return Number(match[1]) * 60 + Number(match[2]);
     }
 
     function showToast(message) {
       toast.textContent = message;
       toast.classList.add("show");
-
       clearTimeout(showToast.timer);
 
       showToast.timer = setTimeout(() => {
         toast.classList.remove("show");
-      }, 3200);
+      }, 2800);
     }
 
 
     /* =========================================================
        CLOCK
-       Kuala Lumpur / Malaysia time
-       ========================================================= */
+    ========================================================= */
 
     function updateClock() {
       const now = new Date();
 
       localTime.textContent = new Intl.DateTimeFormat("en-MY", {
-        timeZone: "Asia/Kuala_Lumpur",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: false
+        timeZone:"Asia/Kuala_Lumpur",
+        hour:"2-digit",
+        minute:"2-digit",
+        second:"2-digit",
+        hour12:false
       }).format(now);
 
       localDate.textContent = new Intl.DateTimeFormat("en-MY", {
-        timeZone: "Asia/Kuala_Lumpur",
-        day: "2-digit",
-        month: "short",
-        year: "numeric"
+        timeZone:"Asia/Kuala_Lumpur",
+        day:"2-digit",
+        month:"short",
+        year:"numeric"
       }).format(now);
     }
 
 
     /* =========================================================
        FILTER + SORT
-       ========================================================= */
+    ========================================================= */
 
     function getFilteredFlights() {
       const query = searchInput.value.trim().toLowerCase();
@@ -1140,14 +1188,21 @@
           flight.destination,
           flight.airline,
           flight.terminal,
-          flight.gate,
+          flight.checkInCounter,
+          flight.boardingGate,
+          flight.arrivalGate,
+          flight.baggage,
+          flight.checkInTime,
           flight.status
         ]
           .join(" ")
           .toLowerCase();
 
         const matchesQuery = !query || haystack.includes(query);
-        const matchesTerminal = terminal === "ALL" || flight.terminal === terminal;
+        const matchesTerminal =
+          terminal === "ALL" ||
+          normalizeTerminal(flight.terminal) === terminal;
+
         const matchesStatus =
           wantedStatus === "ALL" ||
           normalizeStatus(flight.status) === wantedStatus;
@@ -1155,7 +1210,7 @@
         return matchesQuery && matchesTerminal && matchesStatus;
       });
 
-      output.sort((a, b) => {
+      output.sort((a,b) => {
         if (sort === "TIME_DESC") {
           return minutesFromTime(b.time) - minutesFromTime(a.time);
         }
@@ -1173,17 +1228,16 @@
 
     /* =========================================================
        RENDER
-       ========================================================= */
+    ========================================================= */
 
     function renderFlights() {
       const output = getFilteredFlights();
-
       visibleFlights.textContent = String(output.length);
 
       if (!output.length) {
         flightRows.innerHTML = `
           <tr>
-            <td class="empty" colspan="7">
+            <td class="empty" colspan="9">
               No flights match your current search or filters.
             </td>
           </tr>
@@ -1193,35 +1247,48 @@
 
       flightRows.innerHTML = output.map(flight => {
         const status = normalizeStatus(flight.status);
+
         const estimated = flight.estimatedTime
           ? `<span class="subcell">Est. ${escapeHtml(flight.estimatedTime)}</span>`
           : "";
 
+        const checkInTime = safeValue(flight.checkInTime);
+
         return `
           <tr>
             <td>
-              <span class="time">${escapeHtml(flight.time || "--:--")}</span>
+              <span class="time">${escapeHtml(safeValue(flight.time, "--:--"))}</span>
               ${estimated}
+              <span class="subcell">Check-in: ${escapeHtml(checkInTime)}</span>
             </td>
 
             <td>
-              <span class="flight-no">${escapeHtml(flight.flight || "—")}</span>
+              <span class="flight-no">${escapeHtml(safeValue(flight.flight, "—"))}</span>
+              <span class="subcell">${escapeHtml(safeValue(flight.airline, "—"))}</span>
             </td>
 
             <td>
-              <span class="route">${escapeHtml(flight.destination || "—")}</span>
+              <span class="route">${escapeHtml(safeValue(flight.destination, "—"))}</span>
             </td>
 
             <td>
-              <span class="airline">${escapeHtml(flight.airline || "—")}</span>
+              <span class="terminal">${escapeHtml(normalizeTerminal(flight.terminal))}</span>
             </td>
 
             <td>
-              <span class="terminal">${escapeHtml(flight.terminal || "—")}</span>
+              <span class="info-value">${escapeHtml(safeValue(flight.checkInCounter))}</span>
             </td>
 
             <td>
-              <strong>${escapeHtml(flight.gate || "TBA")}</strong>
+              <span class="info-value">${escapeHtml(safeValue(flight.boardingGate))}</span>
+            </td>
+
+            <td>
+              <span class="info-value">${escapeHtml(safeValue(flight.arrivalGate))}</span>
+            </td>
+
+            <td>
+              <span class="info-value">${escapeHtml(safeValue(flight.baggage))}</span>
             </td>
 
             <td>
@@ -1237,7 +1304,7 @@
 
     /* =========================================================
        LIVE API
-       ========================================================= */
+    ========================================================= */
 
     async function fetchLiveFlights() {
       if (!LIVE_API_ENDPOINT) {
@@ -1254,11 +1321,9 @@
 
       try {
         const response = await fetch(LIVE_API_ENDPOINT, {
-          method: "GET",
-          headers: {
-            "Accept": "application/json"
-          },
-          cache: "no-store"
+          method:"GET",
+          headers:{ "Accept":"application/json" },
+          cache:"no-store"
         });
 
         if (!response.ok) {
@@ -1266,10 +1331,7 @@
         }
 
         const payload = await response.json();
-
-        const incomingFlights = Array.isArray(payload)
-          ? payload
-          : payload.flights;
+        const incomingFlights = Array.isArray(payload) ? payload : payload.flights;
 
         if (!Array.isArray(incomingFlights)) {
           throw new Error("API response does not contain a flights array.");
@@ -1281,6 +1343,13 @@
             item.departureTime ??
             item.scheduledTime ??
             "--:--",
+
+          checkInTime:
+            item.checkInTime ??
+            item.checkinTime ??
+            item.checkInOpen ??
+            item.checkInWindow ??
+            "TBA",
 
           flight:
             item.flight ??
@@ -1300,13 +1369,30 @@
             "—",
 
           terminal:
-            String(item.terminal ?? "T1")
-              .toUpperCase()
-              .replace("TERMINAL ", "T"),
+            normalizeTerminal(item.terminal ?? "T1"),
 
-          gate:
-            item.gate ??
+          checkInCounter:
+            item.checkInCounter ??
+            item.checkinCounter ??
+            item.counter ??
+            "TBA",
+
+          boardingGate:
             item.boardingGate ??
+            item.gate ??
+            item.departureGate ??
+            "TBA",
+
+          arrivalGate:
+            item.arrivalGate ??
+            item.destinationGate ??
+            "TBA",
+
+          baggage:
+            item.baggage ??
+            item.baggageBelt ??
+            item.belt ??
+            item.carousel ??
             "TBA",
 
           status:
@@ -1321,15 +1407,14 @@
         dataMode.textContent = "Live API";
 
         const stamp = new Intl.DateTimeFormat("en-MY", {
-          timeZone: "Asia/Kuala_Lumpur",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: false
+          timeZone:"Asia/Kuala_Lumpur",
+          hour:"2-digit",
+          minute:"2-digit",
+          second:"2-digit",
+          hour12:false
         }).format(new Date());
 
         lastUpdated.textContent = `Live data updated at ${stamp} MYT`;
-
         renderFlights();
         showToast("Flight status refreshed.");
 
@@ -1358,13 +1443,12 @@
 
     /* =========================================================
        EVENTS
-       ========================================================= */
+    ========================================================= */
 
     searchInput.addEventListener("input", renderFlights);
     terminalFilter.addEventListener("change", renderFlights);
     statusFilter.addEventListener("change", renderFlights);
     sortSelect.addEventListener("change", renderFlights);
-
     refreshBtn.addEventListener("click", fetchLiveFlights);
 
     setInterval(updateClock, 1000);
@@ -1373,7 +1457,7 @@
 
     /* =========================================================
        START
-       ========================================================= */
+    ========================================================= */
 
     updateClock();
     fetchLiveFlights();

@@ -901,7 +901,7 @@
     <section class="card summary">
       <div class="summary-main">
         <div>
-          <p class="eyebrow">Departures • Terminal 1 & 2</p>
+          <p class="eyebrow">All Flights • Terminal 1 & 2</p>
           <h2>Your flight, at a glance.</h2>
           <p>Departure, check-in, boarding, arrival gate and baggage details in one compact screen.</p>
         </div>
@@ -944,8 +944,8 @@
         </div>
 
         <select class="select" id="terminalFilter" aria-label="Terminal filter">
-          <option value="T1" selected>Terminal 1</option>
-          <option value="ALL">All terminals</option>
+          <option value="T1">Terminal 1</option>
+          <option value="ALL" selected>All terminals</option>
           <option value="T2">Terminal 2</option>
         </select>
 
@@ -974,7 +974,7 @@
     <section class="card board">
       <div class="board-head">
         <div>
-          <h2 class="board-title">Flight Information</h2>
+          <h2 class="board-title">All Flight Information</h2>
         </div>
         <div class="live-pill">
             <span class="live-dot"></span>
@@ -1203,6 +1203,7 @@
        STATE + DOM
     ========================================================= */
 
+    // Immediate startup dataset so the board is never blank while live data loads.
     let flights = [...DEMO_FLIGHTS];
 
     /*
@@ -1719,6 +1720,12 @@
     ========================================================= */
 
     updateClock();
+
+    // Show all built-in flight information immediately on first paint.
+    // Live Trip.com data will replace/update these rows in the background.
+    renderFlights();
+
+    // Start the first live request after the table is already visible.
     fetchLiveFlights();
   </script>
 </body>

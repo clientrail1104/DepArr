@@ -526,6 +526,37 @@
       overflow-wrap:anywhere;
     }
 
+    .checkin-time{
+      display:block;
+      color:var(--muted);
+      font-size:clamp(6px, .52vw, 8px);
+      margin-top:2px;
+      font-weight:800;
+      white-space:normal;
+      overflow-wrap:anywhere;
+    }
+
+    .checkin-time.active{
+      color:#EE2D34;
+      animation:checkInBlink 2.2s ease-in-out infinite;
+    }
+
+    @keyframes checkInBlink{
+      0%,100%{
+        opacity:1;
+      }
+
+      50%{
+        opacity:.28;
+      }
+    }
+
+    @media (prefers-reduced-motion:reduce){
+      .checkin-time.active{
+        animation:none;
+      }
+    }
+
     .terminal{
       display:inline-grid;
       place-items:center;
@@ -901,7 +932,7 @@
     <section class="card summary">
       <div class="summary-main">
         <div>
-          <p class="eyebrow">All Flights • Terminal 1 & 2</p>
+          <p class="eyebrow">Departures • Terminal 1 Default</p>
           <h2>Your flight, at a glance.</h2>
           <p>Departure, check-in, boarding, arrival gate and baggage details in one compact screen.</p>
         </div>
@@ -944,8 +975,8 @@
         </div>
 
         <select class="select" id="terminalFilter" aria-label="Terminal filter">
-          <option value="T1">Terminal 1</option>
-          <option value="ALL" selected>All terminals</option>
+          <option value="T1" selected>Terminal 1</option>
+          <option value="ALL">All terminals</option>
           <option value="T2">Terminal 2</option>
         </select>
 
@@ -1346,6 +1377,69 @@
       return Object.keys(after).some(key => before[key] !== after[key]);
     }
 
+    function getKualaLumpurMinutesNow() {
+      const parts = new Intl.DateTimeFormat("en-GB", {
+        timeZone:"Asia/Kuala_Lumpur",
+        hour:"2-digit",
+        minute:"2-digit",
+        hour12:false
+      }).formatToParts(new Date());
+
+      const hour = Number(parts.find(part => part.type === "hour")?.value ?? 0);
+      const minute = Number(parts.find(part => part.type === "minute")?.value ?? 0);
+
+      return hour * 60 + minute;
+    }
+
+    function parseClockToMinutes(value) {
+      const match = String(value).trim().match(/^(\d{1,2}):(\d{2})$/);
+
+      if (!match) return null;
+
+      const hour = Number(match[1]);
+      const minute = Number(match[2]);
+
+      if (
+        !Number.isInteger(hour) ||
+        !Number.isInteger(minute) ||
+        hour < 0 ||
+        hour > 23 ||
+        minute < 0 ||
+        minute > 59
+      ) {
+        return null;
+      }
+
+      return hour * 60 + minute;
+    }
+
+    function isWithinCheckInWindow(checkInTime) {
+      const text = String(checkInTime ?? "").trim();
+
+      if (!text || text.toUpperCase() === "TBA") return false;
+
+      const match = text.match(
+        /(\d{1,2}:\d{2})\s*(?:-|–|—|to)\s*(\d{1,2}:\d{2})/i
+      );
+
+      if (!match) return false;
+
+      const start = parseClockToMinutes(match[1]);
+      const end = parseClockToMinutes(match[2]);
+
+      if (start === null || end === null) return false;
+
+      const now = getKualaLumpurMinutesNow();
+
+      // Same-day window, e.g. 08:20 - 10:20
+      if (end >= start) {
+        return now >= start && now <= end;
+      }
+
+      // Overnight window, e.g. 23:00 - 01:00
+      return now >= start || now <= end;
+    }
+
     function showToast(message) {
       toast.textContent = message;
       toast.classList.add("show");
@@ -1475,13 +1569,16 @@
           : "";
 
         const checkInTime = safeValue(flight.checkInTime);
+        const checkInActive = isWithinCheckInWindow(checkInTime);
 
         return `
           <tr class="${rowClass}" data-flight-key="${escapeHtml(flightKey)}">
             <td>
               <span class="time">${escapeHtml(safeValue(flight.time, "--:--"))}</span>
               ${estimated}
-              <span class="subcell">Check-in: ${escapeHtml(checkInTime)}</span>
+              <span class="checkin-time ${checkInActive ? "active" : ""}">
+                Check-in: ${escapeHtml(checkInTime)}
+              </span>
             </td>
 
             <td>
@@ -1709,6 +1806,10 @@
     sortSelect.addEventListener("change", renderFlights);
 
     setInterval(updateClock, 1000);
+
+    // Re-evaluate check-in windows every 30 seconds so blink state changes promptly.
+    setInterval(renderFlights, 30 * 1000);
+
     setInterval(() => {
       fetchLiveFlights();
     }, AUTO_REFRESH_MS);

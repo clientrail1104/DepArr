@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
 
     <meta
@@ -8,365 +10,656 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>KLIA T1 Real-Time Flight Board</title>
+    <title>KLIA T1 Live Flight Board</title>
 
     <style>
+
         * {
             box-sizing: border-box;
         }
 
         :root {
-            --bg: #0f172a;
-            --panel: #1e293b;
-            --panel-hover: #273549;
-            --border: #334155;
+
+            --background: #07111f;
+            --panel: #111d2e;
+            --panel-light: #17263b;
+            --border: #27384e;
+
             --text: #f8fafc;
-            --muted: #94a3b8;
+            --muted: #8ea1b8;
+
             --blue: #38bdf8;
             --blue-dark: #0284c7;
-            --red: #f87171;
-            --green: #4ade80;
+
+            --green: #22c55e;
+            --red: #ef4444;
+            --orange: #f59e0b;
         }
+
 
         html {
             color-scheme: dark;
         }
 
-        body {
-            font-family:
-                "Segoe UI",
-                Tahoma,
-                Geneva,
-                Verdana,
-                sans-serif;
 
-            background-color: var(--bg);
-            color: var(--text);
+        body {
 
             margin: 0;
-            padding: 20px;
 
             min-height: 100vh;
+
+            padding: 24px;
+
+            background:
+                radial-gradient(
+                    circle at top,
+                    #12243b,
+                    var(--background) 45%
+                );
+
+            color: var(--text);
+
+            font-family:
+                "Segoe UI",
+                Arial,
+                sans-serif;
         }
+
 
         .container {
+
             width: 100%;
+
             max-width: 1400px;
-            margin: 0 auto;
+
+            margin: auto;
         }
+
+
+        /* =====================================================
+           HEADER
+        ====================================================== */
 
         header {
+
             display: flex;
+
             justify-content: space-between;
+
             align-items: center;
+
             gap: 20px;
+
             flex-wrap: wrap;
 
-            border-bottom: 2px solid var(--panel);
             padding-bottom: 20px;
-            margin-bottom: 18px;
+
+            margin-bottom: 16px;
+
+            border-bottom:
+                1px solid var(--border);
         }
 
+
+        .brand {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 5px;
+        }
+
+
         h1 {
+
             margin: 0;
-            font-size: 24px;
+
+            font-size: clamp(
+                20px,
+                3vw,
+                30px
+            );
+
             color: var(--blue);
         }
 
+
         .subtitle {
+
+            margin: 0;
+
             color: var(--muted);
-            margin: 5px 0 0;
+
             font-size: 14px;
         }
 
+
+        /* =====================================================
+           BUTTONS
+        ====================================================== */
+
         .controls {
+
             display: flex;
+
             gap: 10px;
+
             flex-wrap: wrap;
         }
 
-        button {
-            appearance: none;
 
-            background-color: var(--panel);
+        button {
+
+            border:
+                1px solid var(--border);
+
+            background:
+                var(--panel);
+
             color: white;
 
-            border: 1px solid var(--border);
+            border-radius: 10px;
 
-            padding: 10px 18px;
+            padding:
+                11px 18px;
 
             cursor: pointer;
 
-            border-radius: 6px;
-
-            font-weight: 600;
             font-size: 14px;
 
+            font-weight: 600;
+
             transition:
-                background-color 0.2s ease,
-                border-color 0.2s ease,
-                transform 0.2s ease;
+                0.2s ease;
         }
+
 
         button:hover {
-            background-color: var(--border);
+
+            background:
+                var(--panel-light);
+
+            transform:
+                translateY(-1px);
         }
 
-        button:active {
-            transform: scale(0.97);
-        }
 
         button.active {
-            background-color: var(--blue-dark);
-            border-color: var(--blue);
+
+            background:
+                var(--blue-dark);
+
+            border-color:
+                var(--blue);
         }
 
+
         button:disabled {
+
             opacity: 0.55;
+
             cursor: wait;
         }
 
+
+        /* =====================================================
+           STATUS BAR
+        ====================================================== */
+
         .status-bar {
+
             display: flex;
-            justify-content: space-between;
+
+            justify-content:
+                space-between;
+
             align-items: center;
-            gap: 12px;
+
             flex-wrap: wrap;
+
+            gap: 10px;
 
             margin-bottom: 12px;
 
             color: var(--muted);
+
             font-size: 13px;
         }
 
-        .connection-status {
-            display: inline-flex;
+
+        .connection {
+
+            display: flex;
+
             align-items: center;
-            gap: 7px;
+
+            gap: 8px;
         }
+
 
         .connection-dot {
-            width: 8px;
-            height: 8px;
+
+            width: 9px;
+
+            height: 9px;
+
             border-radius: 50%;
-            background: var(--muted);
+
+            background:
+                var(--muted);
         }
+
 
         .connection-dot.online {
-            background: var(--green);
-            box-shadow: 0 0 8px rgba(74, 222, 128, 0.7);
-        }
 
-        .connection-dot.offline {
-            background: var(--red);
-        }
-
-        .table-wrapper {
-            width: 100%;
-            overflow-x: auto;
-
-            background-color: var(--panel);
-
-            border: 1px solid var(--border);
-            border-radius: 8px;
+            background:
+                var(--green);
 
             box-shadow:
-                0 4px 10px rgba(0, 0, 0, 0.18);
+                0 0 10px
+                rgba(
+                    34,
+                    197,
+                    94,
+                    0.8
+                );
         }
+
+
+        .connection-dot.offline {
+
+            background:
+                var(--red);
+        }
+
+
+        /* =====================================================
+           TABLE
+        ====================================================== */
+
+        .table-container {
+
+            overflow-x: auto;
+
+            border:
+                1px solid var(--border);
+
+            border-radius: 14px;
+
+            background:
+                rgba(
+                    17,
+                    29,
+                    46,
+                    0.96
+                );
+
+            box-shadow:
+                0 20px 50px
+                rgba(
+                    0,
+                    0,
+                    0,
+                    0.25
+                );
+        }
+
 
         table {
+
             width: 100%;
-            min-width: 800px;
 
-            border-collapse: collapse;
-            background-color: var(--panel);
+            min-width: 850px;
+
+            border-collapse:
+                collapse;
         }
 
-        th,
-        td {
-            padding: 14px 20px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-            white-space: nowrap;
+
+        thead {
+
+            background:
+                #0b1523;
         }
+
 
         th {
-            background-color: var(--bg);
+
+            padding:
+                15px 18px;
+
+            text-align: left;
+
             color: var(--muted);
-            font-weight: 600;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-
-        tbody tr {
-            transition: background-color 0.15s ease;
-        }
-
-        tbody tr:hover {
-            background-color: var(--panel-hover);
-        }
-
-        tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        .flight-number {
-            color: var(--blue);
-            font-weight: 600;
-        }
-
-        .status {
-            display: inline-block;
-
-            padding: 5px 9px;
-
-            border-radius: 5px;
 
             font-size: 12px;
-            font-weight: 700;
-            line-height: 1.2;
+
+            letter-spacing:
+                0.05em;
+
+            text-transform:
+                uppercase;
+
+            border-bottom:
+                1px solid var(--border);
         }
 
-        .status-delayed,
-        .status-cancelled {
-            background-color: #7f1d1d;
-            color: #fecaca;
+
+        td {
+
+            padding:
+                15px 18px;
+
+            border-bottom:
+                1px solid var(--border);
+
+            font-size: 14px;
+
+            white-space:
+                nowrap;
         }
 
-        .status-boarded,
-        .status-landed,
-        .status-departed {
-            background-color: #064e3b;
-            color: #a7f3d0;
+
+        tbody tr {
+
+            transition:
+                0.15s ease;
         }
 
-        .status-gate {
-            background-color: #78350f;
-            color: #fde68a;
+
+        tbody tr:hover {
+
+            background:
+                rgba(
+                    56,
+                    189,
+                    248,
+                    0.045
+                );
         }
+
+
+        tbody tr:last-child td {
+
+            border-bottom:
+                none;
+        }
+
+
+        .flight-number {
+
+            color:
+                var(--blue);
+
+            font-weight:
+                700;
+        }
+
+
+        /* =====================================================
+           FLIGHT STATUS
+        ====================================================== */
+
+        .flight-status {
+
+            display:
+                inline-flex;
+
+            align-items:
+                center;
+
+            padding:
+                6px 10px;
+
+            border-radius:
+                8px;
+
+            font-size:
+                12px;
+
+            font-weight:
+                700;
+        }
+
 
         .status-normal {
-            background-color: var(--border);
-            color: #e2e8f0;
+
+            color:
+                #dbeafe;
+
+            background:
+                #334155;
         }
 
-        .loading,
-        .message {
-            text-align: center;
-            padding: 30px 20px !important;
-            color: var(--muted);
+
+        .status-boarded {
+
+            background:
+                #064e3b;
+
+            color:
+                #a7f3d0;
         }
+
+
+        .status-delayed {
+
+            background:
+                #7f1d1d;
+
+            color:
+                #fecaca;
+        }
+
+
+        .status-gate {
+
+            background:
+                #78350f;
+
+            color:
+                #fde68a;
+        }
+
+
+        /* =====================================================
+           LOADING
+        ====================================================== */
+
+        .message {
+
+            text-align:
+                center;
+
+            padding:
+                35px !important;
+
+            color:
+                var(--muted);
+        }
+
 
         .error {
-            color: var(--red);
+
+            color:
+                #fca5a5;
         }
+
 
         .spinner {
-            width: 15px;
-            height: 15px;
 
-            display: inline-block;
+            display:
+                inline-block;
 
-            border: 2px solid var(--border);
-            border-top-color: var(--blue);
+            width:
+                14px;
 
-            border-radius: 50%;
+            height:
+                14px;
 
-            animation: spin 0.7s linear infinite;
+            margin-right:
+                8px;
 
-            vertical-align: -2px;
-            margin-right: 8px;
+            border:
+                2px solid
+                var(--border);
+
+            border-top-color:
+                var(--blue);
+
+            border-radius:
+                50%;
+
+            vertical-align:
+                -2px;
+
+            animation:
+                spin
+                0.7s
+                linear
+                infinite;
         }
 
+
         @keyframes spin {
+
             to {
-                transform: rotate(360deg);
+                transform:
+                    rotate(360deg);
             }
         }
 
-        @media (max-width: 768px) {
+
+        /* =====================================================
+           MOBILE
+        ====================================================== */
+
+        @media (
+            max-width: 768px
+        ) {
+
             body {
                 padding: 12px;
             }
 
+
             header {
-                align-items: stretch;
+
+                align-items:
+                    stretch;
             }
 
-            h1 {
-                font-size: 20px;
-            }
 
             .controls {
-                width: 100%;
+
+                width:
+                    100%;
             }
+
 
             .controls button {
-                flex: 1;
-                padding: 11px 12px;
+
+                flex:
+                    1;
             }
 
-            th,
-            td {
-                padding: 12px 14px;
+
+            .status-bar {
+
+                font-size:
+                    12px;
             }
         }
 
-        @media (max-width: 480px) {
+
+        @media (
+            max-width: 480px
+        ) {
+
             body {
                 padding: 8px;
             }
 
-            h1 {
-                font-size: 18px;
+
+            .controls {
+
+                display:
+                    grid;
+
+                grid-template-columns:
+                    1fr 1fr;
             }
 
-            .subtitle {
-                font-size: 12px;
+
+            #btn-refresh {
+
+                grid-column:
+                    1 / -1;
             }
         }
+
     </style>
+
 </head>
+
 
 <body>
 
+
 <div class="container">
+
 
     <header>
 
-        <div>
-            <h1>KLIA Terminal 1 Live Flight Details</h1>
+        <div class="brand">
+
+            <h1>
+                KLIA Terminal 1
+                Live Flight Details
+            </h1>
 
             <p class="subtitle">
                 Real-Time Flight Information
             </p>
+
         </div>
+
 
         <div class="controls">
 
             <button
                 id="btn-departures"
                 class="active"
-                type="button"
-                onclick="fetchFlights('departures')"
+                onclick="
+                    fetchFlights(
+                        'departures'
+                    )
+                "
             >
                 🛫 Departures
             </button>
 
+
             <button
                 id="btn-arrivals"
-                type="button"
-                onclick="fetchFlights('arrivals')"
+                onclick="
+                    fetchFlights(
+                        'arrivals'
+                    )
+                "
             >
                 🛬 Arrivals
             </button>
 
+
             <button
                 id="btn-refresh"
-                type="button"
-                onclick="fetchFlights(currentType)"
-                title="Refresh flight information"
+                onclick="
+                    fetchFlights(
+                        currentType
+                    )
+                "
             >
                 ↻ Refresh
             </button>
@@ -375,52 +668,96 @@
 
     </header>
 
+
     <div class="status-bar">
 
-        <div class="connection-status">
+        <div class="connection">
 
             <span
                 id="connection-dot"
                 class="connection-dot"
             ></span>
 
-            <span id="connection-text">
+            <span
+                id="connection-text"
+            >
                 Connecting...
             </span>
 
         </div>
 
+
         <div>
+
             Last updated:
-            <span id="last-updated">--</span>
+
+            <span id="last-updated">
+                --
+            </span>
+
         </div>
 
     </div>
 
-    <div class="table-wrapper">
 
-        <table id="flight-table">
+    <div class="table-container">
+
+        <table>
 
             <thead>
 
                 <tr>
-                    <th>Time</th>
-                    <th>Flight No.</th>
-                    <th>Airline</th>
-                    <th id="location-header">Destination</th>
-                    <th>Gate</th>
-                    <th>Status</th>
+
+                    <th>
+                        Time
+                    </th>
+
+                    <th>
+                        Flight No.
+                    </th>
+
+                    <th>
+                        Airline
+                    </th>
+
+                    <th
+                        id="location-header"
+                    >
+                        Destination
+                    </th>
+
+                    <th>
+                        Gate
+                    </th>
+
+                    <th>
+                        Status
+                    </th>
+
                 </tr>
 
             </thead>
 
-            <tbody id="flight-data">
+
+            <tbody
+                id="flight-data"
+            >
 
                 <tr>
-                    <td colspan="6" class="loading">
-                        <span class="spinner"></span>
-                        Loading KLIA Terminal 1 flights...
+
+                    <td
+                        colspan="6"
+                        class="message"
+                    >
+
+                        <span
+                            class="spinner"
+                        ></span>
+
+                        Loading flight data...
+
                     </td>
+
                 </tr>
 
             </tbody>
@@ -429,451 +766,405 @@
 
     </div>
 
+
 </div>
 
 
+
 <script>
+
     /*
-     * ==========================================================
-     * BACKEND CONFIGURATION
-     * ==========================================================
+     * =========================================================
+     * CONFIGURATION
+     * =========================================================
      *
-     * Expected Flask endpoints:
+     * IMPORTANT:
      *
-     * http://127.0.0.1:5000/api/flights/departures
-     * http://127.0.0.1:5000/api/flights/arrivals
+     * Do NOT use:
      *
-     * Change API_BASE below if your backend uses another URL.
+     * http://127.0.0.1:5000/api/flights
+     *
+     * We use a relative API path instead.
+     *
+     * This means HTML and Flask use the same domain.
      */
 
-    const API_BASE = "http://127.0.0.1:5000/api/flights";
-
-    /*
-     * Automatically refresh every 60 seconds.
-     */
-    const AUTO_REFRESH_INTERVAL = 60000;
-
-    let currentType = "departures";
-    let requestController = null;
+    const API_BASE =
+        "/api/flights";
 
 
     /*
-     * Escape data returned from the server before inserting
-     * it into HTML.
+     * Refresh every 60 seconds.
      */
-    function escapeHTML(value) {
 
-        if (
-            value === null ||
-            value === undefined
-        ) {
-            return "—";
-        }
+    const AUTO_REFRESH =
+        60000;
 
-        return String(value)
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "&quot;")
-            .replaceAll("'", "&#039;");
-    }
+
+    let currentType =
+        "departures";
+
+
+    let controller =
+        null;
+
 
 
     /*
-     * Normalise different backend property names.
+     * =========================================================
+     * HTML ESCAPING
+     * =========================================================
      */
-    function getFlightValue(
-        flight,
-        possibleKeys,
-        fallback = "—"
+
+    function escapeHTML(
+        value
     ) {
 
-        for (const key of possibleKeys) {
+        return String(
+            value ?? "—"
+        )
 
-            if (
-                flight[key] !== undefined &&
-                flight[key] !== null &&
-                flight[key] !== ""
-            ) {
-                return flight[key];
-            }
-        }
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
 
-        return fallback;
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
     }
 
 
-    /*
-     * Convert flight status to CSS style.
-     */
-    function getStatusClass(statusValue) {
 
-        const status = String(
-            statusValue || ""
-        ).toLowerCase();
+    /*
+     * =========================================================
+     * CONNECTION STATUS
+     * =========================================================
+     */
+
+    function setConnection(
+        online
+    ) {
+
+        const dot =
+            document.getElementById(
+                "connection-dot"
+            );
+
+
+        const text =
+            document.getElementById(
+                "connection-text"
+            );
+
+
+        dot.className =
+            "connection-dot";
+
+
+        if (online) {
+
+            dot.classList.add(
+                "online"
+            );
+
+
+            text.textContent =
+                "Live data connected";
+
+        } else {
+
+            dot.classList.add(
+                "offline"
+            );
+
+
+            text.textContent =
+                "Flight service unavailable";
+        }
+    }
+
+
+
+    /*
+     * =========================================================
+     * STATUS STYLE
+     * =========================================================
+     */
+
+    function getStatusClass(
+        status
+    ) {
+
+        const value =
+            String(
+                status || ""
+            ).toLowerCase();
+
 
         if (
-            status.includes("delay") ||
-            status.includes("cancel")
+            value.includes(
+                "delay"
+            ) ||
+
+            value.includes(
+                "cancel"
+            )
         ) {
+
             return "status-delayed";
         }
 
+
         if (
-            status.includes("board") ||
-            status.includes("land") ||
-            status.includes("depart") ||
-            status.includes("arrived")
+            value.includes(
+                "board"
+            ) ||
+
+            value.includes(
+                "land"
+            ) ||
+
+            value.includes(
+                "arrived"
+            ) ||
+
+            value.includes(
+                "departed"
+            )
         ) {
+
             return "status-boarded";
         }
 
+
         if (
-            status.includes("gate open") ||
-            status.includes("gate closing") ||
-            status.includes("final call")
+            value.includes(
+                "gate"
+            ) ||
+
+            value.includes(
+                "final call"
+            )
         ) {
+
             return "status-gate";
         }
+
 
         return "status-normal";
     }
 
 
+
     /*
-     * Update API connection indicator.
+     * =========================================================
+     * LOADING BUTTONS
+     * =========================================================
      */
-    function setConnectionState(
-        online,
-        message
+
+    function setButtons(
+        loading
     ) {
-
-        const dot =
-            document.getElementById("connection-dot");
-
-        const text =
-            document.getElementById("connection-text");
-
-        dot.classList.remove(
-            "online",
-            "offline"
-        );
-
-        if (online) {
-            dot.classList.add("online");
-        } else {
-            dot.classList.add("offline");
-        }
-
-        text.textContent = message;
-    }
-
-
-    /*
-     * Toggle buttons while retrieving flights.
-     */
-    function setLoadingState(isLoading) {
 
         document.getElementById(
             "btn-departures"
-        ).disabled = isLoading;
+        ).disabled =
+            loading;
+
 
         document.getElementById(
             "btn-arrivals"
-        ).disabled = isLoading;
+        ).disabled =
+            loading;
+
 
         document.getElementById(
             "btn-refresh"
-        ).disabled = isLoading;
+        ).disabled =
+            loading;
     }
 
 
-    /*
-     * Render flight rows.
-     */
-    function renderFlights(
-        flights,
-        type
-    ) {
-
-        const tbody =
-            document.getElementById("flight-data");
-
-        if (
-            !Array.isArray(flights) ||
-            flights.length === 0
-        ) {
-
-            tbody.innerHTML = `
-                <tr>
-                    <td
-                        colspan="6"
-                        class="message"
-                    >
-                        No active ${escapeHTML(type)}
-                        flights are currently available.
-                    </td>
-                </tr>
-            `;
-
-            return;
-        }
-
-        const rows = flights.map(
-            (flight) => {
-
-                const time =
-                    getFlightValue(
-                        flight,
-                        [
-                            "time",
-                            "scheduled_time",
-                            "scheduled",
-                            "departure_time",
-                            "arrival_time"
-                        ]
-                    );
-
-                const flightNo =
-                    getFlightValue(
-                        flight,
-                        [
-                            "flight_no",
-                            "flight_number",
-                            "flight",
-                            "number"
-                        ]
-                    );
-
-                const airline =
-                    getFlightValue(
-                        flight,
-                        [
-                            "airline",
-                            "airline_name",
-                            "carrier"
-                        ]
-                    );
-
-                const location =
-                    getFlightValue(
-                        flight,
-                        type === "departures"
-                            ? [
-                                "destination",
-                                "location",
-                                "airport"
-                            ]
-                            : [
-                                "origin",
-                                "destination",
-                                "location",
-                                "airport"
-                            ]
-                    );
-
-                const gate =
-                    getFlightValue(
-                        flight,
-                        [
-                            "gate",
-                            "gate_number"
-                        ]
-                    );
-
-                const status =
-                    getFlightValue(
-                        flight,
-                        [
-                            "status",
-                            "flight_status"
-                        ],
-                        "Scheduled"
-                    );
-
-                const statusClass =
-                    getStatusClass(status);
-
-                return `
-                    <tr>
-
-                        <td>
-                            <strong>
-                                ${escapeHTML(time)}
-                            </strong>
-                        </td>
-
-                        <td class="flight-number">
-                            ${escapeHTML(flightNo)}
-                        </td>
-
-                        <td>
-                            ${escapeHTML(airline)}
-                        </td>
-
-                        <td>
-                            ${escapeHTML(location)}
-                        </td>
-
-                        <td>
-                            ${escapeHTML(gate)}
-                        </td>
-
-                        <td>
-                            <span
-                                class="status ${statusClass}"
-                            >
-                                ${escapeHTML(status)}
-                            </span>
-                        </td>
-
-                    </tr>
-                `;
-            }
-        );
-
-        tbody.innerHTML = rows.join("");
-    }
-
 
     /*
-     * Main API request.
+     * =========================================================
+     * FETCH FLIGHTS
+     * =========================================================
      */
+
     async function fetchFlights(
         type = "departures",
         silent = false
     ) {
 
-        currentType = type;
-
-        /*
-         * Update button states.
-         */
-        document
-            .getElementById("btn-departures")
-            .classList.toggle(
-                "active",
-                type === "departures"
-            );
-
-        document
-            .getElementById("btn-arrivals")
-            .classList.toggle(
-                "active",
-                type === "arrivals"
-            );
+        currentType =
+            type;
 
 
         /*
-         * Update Destination / Origin heading.
+         * Toggle active button.
          */
+
+        document.getElementById(
+            "btn-departures"
+        ).classList.toggle(
+            "active",
+            type === "departures"
+        );
+
+
+        document.getElementById(
+            "btn-arrivals"
+        ).classList.toggle(
+            "active",
+            type === "arrivals"
+        );
+
+
+        /*
+         * Change table heading.
+         */
+
         document.getElementById(
             "location-header"
         ).textContent =
+
             type === "departures"
-                ? "Destination"
-                : "Origin";
+
+            ? "Destination"
+
+            : "Origin";
 
 
         const tbody =
-            document.getElementById("flight-data");
+            document.getElementById(
+                "flight-data"
+            );
 
 
         if (!silent) {
 
             tbody.innerHTML = `
+
                 <tr>
+
                     <td
                         colspan="6"
-                        class="loading"
+                        class="message"
                     >
-                        <span class="spinner"></span>
+
+                        <span
+                            class="spinner"
+                        ></span>
 
                         Loading live
                         ${escapeHTML(type)}
                         flights...
+
                     </td>
+
                 </tr>
+
             `;
         }
 
 
         /*
-         * Cancel previous unfinished request.
+         * Cancel previous request.
          */
-        if (requestController) {
-            requestController.abort();
+
+        if (controller) {
+
+            controller.abort();
         }
 
-        requestController =
+
+        controller =
             new AbortController();
 
 
-        /*
-         * Stop API request after 15 seconds.
-         */
         const timeout =
             setTimeout(
-                () => requestController.abort(),
+
+                () =>
+                    controller.abort(),
+
                 15000
             );
 
 
-        setLoadingState(true);
+        setButtons(
+            true
+        );
 
 
         try {
 
-            const url =
-                `${API_BASE}/${encodeURIComponent(type)}`;
+
+            /*
+             * The URL will become:
+             *
+             * /api/flights/departures
+             *
+             * OR
+             *
+             * /api/flights/arrivals
+             */
+
+            const response =
+                await fetch(
+
+                    `${API_BASE}/${type}`,
+
+                    {
+
+                        method:
+                            "GET",
+
+                        headers: {
+
+                            "Accept":
+                                "application/json"
+                        },
+
+                        cache:
+                            "no-store",
+
+                        signal:
+                            controller.signal
+                    }
+                );
 
 
-            const response = await fetch(
-                url,
-                {
-                    method: "GET",
-
-                    headers: {
-                        "Accept": "application/json"
-                    },
-
-                    cache: "no-store",
-
-                    signal:
-                        requestController.signal
-                }
+            clearTimeout(
+                timeout
             );
 
 
-            clearTimeout(timeout);
-
-
-            /*
-             * Handle HTTP errors.
-             */
-            if (!response.ok) {
-
-                throw new Error(
-                    `HTTP ${response.status} ${response.statusText}`
-                );
-            }
-
-
-            /*
-             * Ensure JSON is returned.
-             */
-            const contentType =
-                response.headers.get("content-type");
-
             if (
-                !contentType ||
-                !contentType.includes(
-                    "application/json"
-                )
+                !response.ok
             ) {
 
                 throw new Error(
-                    "Backend returned a non-JSON response."
+
+                    `Server error: ${response.status}`
                 );
             }
 
@@ -882,103 +1173,237 @@
                 await response.json();
 
 
-            /*
-             * Allow these backend response formats:
-             *
-             * {
-             *   success: true,
-             *   data: [...]
-             * }
-             *
-             * OR
-             *
-             * [...]
-             *
-             * OR
-             *
-             * {
-             *   flights: [...]
-             * }
-             */
-
-            let flights = [];
-
-
-            if (Array.isArray(result)) {
-
-                flights = result;
-
-            } else if (
-                Array.isArray(result.data)
-            ) {
-
-                flights = result.data;
-
-            } else if (
-                Array.isArray(result.flights)
-            ) {
-
-                flights = result.flights;
-            }
-
-
-            /*
-             * If backend explicitly says request failed.
-             */
             if (
-                result &&
                 result.success === false
             ) {
 
                 throw new Error(
+
                     result.message ||
-                    result.error ||
-                    "Backend reported an error."
+                    "Flight API error"
                 );
             }
 
 
-            renderFlights(
-                flights,
-                type
-            );
+            const flights =
+                Array.isArray(
+                    result.data
+                )
+
+                ? result.data
+
+                : [];
 
 
-            setConnectionState(
-                true,
-                "Live data connected"
-            );
+            /*
+             * No flights.
+             */
+
+            if (
+                flights.length === 0
+            ) {
+
+                tbody.innerHTML = `
+
+                    <tr>
+
+                        <td
+                            colspan="6"
+                            class="message"
+                        >
+
+                            No flight information
+                            currently available.
+
+                        </td>
+
+                    </tr>
+
+                `;
 
 
-            document.getElementById(
-                "last-updated"
-            ).textContent =
-                new Date().toLocaleTimeString(
-                    [],
-                    {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        second: "2-digit"
+                setConnection(
+                    true
+                );
+
+
+                return;
+            }
+
+
+            /*
+             * Build rows.
+             */
+
+            const rows =
+                flights.map(
+
+                    flight => {
+
+
+                        const status =
+                            flight.status ||
+                            "Scheduled";
+
+
+                        const location =
+
+                            type ===
+                            "departures"
+
+                            ? (
+                                flight.destination ||
+                                "—"
+                            )
+
+                            : (
+                                flight.origin ||
+                                "—"
+                            );
+
+
+                        const statusClass =
+                            getStatusClass(
+                                status
+                            );
+
+
+                        return `
+
+                            <tr>
+
+                                <td>
+
+                                    <strong>
+
+                                        ${escapeHTML(
+                                            flight.time
+                                        )}
+
+                                    </strong>
+
+                                </td>
+
+
+                                <td
+                                    class="
+                                        flight-number
+                                    "
+                                >
+
+                                    ${escapeHTML(
+                                        flight.flight_no
+                                    )}
+
+                                </td>
+
+
+                                <td>
+
+                                    ${escapeHTML(
+                                        flight.airline
+                                    )}
+
+                                </td>
+
+
+                                <td>
+
+                                    ${escapeHTML(
+                                        location
+                                    )}
+
+                                </td>
+
+
+                                <td>
+
+                                    ${escapeHTML(
+                                        flight.gate
+                                    )}
+
+                                </td>
+
+
+                                <td>
+
+                                    <span
+                                        class="
+                                            flight-status
+                                            ${statusClass}
+                                        "
+                                    >
+
+                                        ${escapeHTML(
+                                            status
+                                        )}
+
+                                    </span>
+
+                                </td>
+
+                            </tr>
+
+                        `;
                     }
                 );
 
 
-        } catch (error) {
+            tbody.innerHTML =
+                rows.join("");
 
-            clearTimeout(timeout);
+
+            setConnection(
+                true
+            );
 
 
             /*
-             * Ignore aborted requests caused by switching
-             * between Departures / Arrivals.
+             * Updated time.
              */
-            if (
-                error.name === "AbortError"
-            ) {
 
-                console.warn(
-                    "Flight request aborted."
+            document.getElementById(
+                "last-updated"
+            ).textContent =
+
+                new Date()
+                .toLocaleTimeString(
+
+                    "en-MY",
+
+                    {
+
+                        hour:
+                            "2-digit",
+
+                        minute:
+                            "2-digit",
+
+                        second:
+                            "2-digit"
+                    }
                 );
+
+
+        } catch (
+            error
+        ) {
+
+
+            clearTimeout(
+                timeout
+            );
+
+
+            /*
+             * Ignore old aborted
+             * request if user switched tabs.
+             */
+
+            if (
+                error.name ===
+                "AbortError"
+            ) {
 
                 return;
             }
@@ -990,62 +1415,79 @@
             );
 
 
-            setConnectionState(
-                false,
-                "Backend unavailable"
+            setConnection(
+                false
             );
 
 
             tbody.innerHTML = `
+
                 <tr>
 
                     <td
                         colspan="6"
-                        class="message error"
+
+                        class="
+                            message
+                            error
+                        "
                     >
 
-                        Unable to retrieve live flight data.
+                        Unable to retrieve
+                        flight information.
 
                         <br><br>
 
-                        Make sure the backend server is running at:
-
-                        <br>
-
-                        <strong>
-                            ${escapeHTML(API_BASE)}
-                        </strong>
-
-                        <br><br>
-
-                        ${escapeHTML(error.message)}
+                        ${escapeHTML(
+                            error.message
+                        )}
 
                     </td>
 
                 </tr>
+
             `;
+
 
         } finally {
 
-            setLoadingState(false);
+
+            setButtons(
+                false
+            );
         }
     }
 
 
-    /*
-     * Initial page load.
-     */
-    document.addEventListener(
-        "DOMContentLoaded",
-        () => {
 
-            fetchFlights("departures");
+    /*
+     * =========================================================
+     * INITIALIZE PAGE
+     * =========================================================
+     */
+
+    document.addEventListener(
+
+        "DOMContentLoaded",
+
+        () => {
 
 
             /*
-             * Auto-refresh current board every 60 seconds.
+             * First load.
              */
+
+            fetchFlights(
+                "departures"
+            );
+
+
+            /*
+             * Auto refresh.
+             */
+
             setInterval(
+
                 () => {
 
                     fetchFlights(
@@ -1054,12 +1496,16 @@
                     );
 
                 },
-                AUTO_REFRESH_INTERVAL
+
+                AUTO_REFRESH
             );
+
         }
     );
 
 </script>
 
+
 </body>
+
 </html>

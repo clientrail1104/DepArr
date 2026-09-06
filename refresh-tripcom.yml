@@ -1,0 +1,52 @@
+name: Refresh All Trip.com Departures
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/5 * * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tripcom-kul-departures
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Scrape all live Trip.com KUL departures
+        run: npm run scrape
+
+      - name: Commit live flights.json
+        shell: bash
+        run: |
+          if git diff --quiet -- flights.json; then
+            echo "Trip.com data unchanged."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add flights.json
+          git commit -m "Refresh all live Trip.com KUL departures"
+          git pull --rebase
+          git push

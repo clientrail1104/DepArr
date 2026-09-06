@@ -161,7 +161,7 @@
     .summary{
       min-height:84px;
       display:grid;
-      grid-template-columns:minmax(310px, 1.5fr) repeat(4, minmax(115px, .5fr));
+      grid-template-columns:minmax(310px, 1.5fr) repeat(3, minmax(115px, .5fr));
       gap:8px;
       padding:10px;
     }
@@ -261,12 +261,12 @@
 
     .control-grid{
       display:grid;
-      grid-template-columns:minmax(240px, 1.35fr) repeat(3, minmax(130px, .45fr)) auto;
+      grid-template-columns:minmax(240px, 1.35fr) repeat(3, minmax(130px, .45fr));
       gap:8px;
       align-items:center;
     }
 
-    .field, .select, .refresh-btn{
+    .field, .select{
       height:38px;
       border:0;
       outline:0;
@@ -291,18 +291,6 @@
       padding:0 10px;
       font-size:11px;
     }
-
-    .refresh-btn{
-      padding:0 13px;
-      font-size:11px;
-      font-weight:900;
-      box-shadow:
-        4px 4px 10px var(--shadow-dark),
-        -4px -4px 10px var(--shadow-light);
-      transition:.18s ease;
-    }
-
-    .refresh-btn:hover{ transform:translateY(-1px); }
 
     /* =========================
        BOARD
@@ -339,6 +327,8 @@
       text-overflow:ellipsis;
       max-width:70vw;
     }
+
+
 
     .live-pill{
       display:inline-flex;
@@ -591,13 +581,12 @@
         grid-template-columns:minmax(250px, 1.4fr) repeat(2, minmax(110px,.55fr));
       }
 
-      .metric:nth-of-type(3),
-      .metric:nth-of-type(4){
+      .metric:nth-of-type(3){
         display:none;
       }
 
       .control-grid{
-        grid-template-columns:minmax(220px,1.3fr) 1fr 1fr auto;
+        grid-template-columns:minmax(220px,1.3fr) 1fr 1fr;
       }
 
       #sortSelect{ display:none; }
@@ -652,15 +641,14 @@
       }
 
       .metric:nth-of-type(2),
-      .metric:nth-of-type(3),
-      .metric:nth-of-type(4){
+      .metric:nth-of-type(3){
         display:none;
       }
 
       .controls{ padding:7px; }
 
       .control-grid{
-        grid-template-columns:1fr 105px auto;
+        grid-template-columns:1fr 105px;
         gap:6px;
       }
 
@@ -669,7 +657,7 @@
         display:none;
       }
 
-      .field, .select, .refresh-btn{
+      .field, .select{
         height:34px;
         font-size:10px;
       }
@@ -679,6 +667,8 @@
       }
 
       .board-title{ font-size:14px; }
+
+
       .board-note{ font-size:8px; max-width:62vw; }
 
       table{ min-width:1120px; }
@@ -699,7 +689,7 @@
       .metric{ min-height:50px; padding:8px 9px; }
       .metric-value{ font-size:13px; }
       .controls{ padding:7px; }
-      .field, .select, .refresh-btn{ height:34px; }
+      .field, .select{ height:34px; }
       .board-head{ padding:8px 12px; }
       td{ padding-top:7px; padding-bottom:7px; }
       th{ padding-top:6px; padding-bottom:6px; }
@@ -758,11 +748,6 @@
         <span class="metric-label">Visible flights</span>
         <strong class="metric-value" id="visibleFlights">0</strong>
       </div>
-
-      <div class="metric">
-        <span class="metric-label">Data mode</span>
-        <strong class="metric-value" id="dataMode">Demo</strong>
-      </div>
     </section>
 
     <section class="card controls" aria-label="Flight filters">
@@ -803,8 +788,6 @@
           <option value="TIME_DESC">Time ↓</option>
           <option value="FLIGHT_ASC">Flight A–Z</option>
         </select>
-
-        <button class="refresh-btn" id="refreshBtn" type="button">↻ Refresh</button>
       </div>
     </section>
 
@@ -812,13 +795,11 @@
       <div class="board-head">
         <div>
           <h2 class="board-title">Flight Information</h2>
-          <p class="board-note" id="lastUpdated">Waiting for flight data…</p>
         </div>
-
         <div class="live-pill">
-          <span class="live-dot"></span>
-          Status monitor
-        </div>
+            <span class="live-dot"></span>
+            Status monitor
+          </div>
       </div>
 
       <div class="table-wrap">
@@ -858,7 +839,7 @@
       Set this to your authorised backend flight-data endpoint.
 
       Example:
-      const LIVE_API_ENDPOINT = "/api/flights/departures";
+      const TRIP_COM_PROXY_ENDPOINT = "/api/tripcom/kul";
 
       Supported fields:
       {
@@ -880,12 +861,14 @@
         ]
       }
 
-      The frontend does not scrape Trip.com directly because browser
-      CORS / anti-bot controls can block that approach.
+      The browser polls your own server-side Trip.com proxy every 10 seconds.
+      The proxy should retrieve/normalize Trip.com flight data server-side.
+      Do not scrape Trip.com directly from browser JavaScript because
+      cross-origin and anti-bot controls can block or break it.
     */
 
-    const LIVE_API_ENDPOINT = "";
-    const AUTO_REFRESH_MS = 60 * 1000;
+    const TRIP_COM_PROXY_ENDPOINT = "/api/tripcom/kul";
+    const AUTO_REFRESH_MS = 10 * 1000; // silent polling every 10 seconds
 
 
     /* =========================================================
@@ -1047,13 +1030,10 @@
     const terminalFilter = document.getElementById("terminalFilter");
     const statusFilter = document.getElementById("statusFilter");
     const sortSelect = document.getElementById("sortSelect");
-    const refreshBtn = document.getElementById("refreshBtn");
 
     const localTime = document.getElementById("localTime");
     const localDate = document.getElementById("localDate");
     const visibleFlights = document.getElementById("visibleFlights");
-    const lastUpdated = document.getElementById("lastUpdated");
-    const dataMode = document.getElementById("dataMode");
     const toast = document.getElementById("toast");
 
 
@@ -1306,21 +1286,25 @@
        LIVE API
     ========================================================= */
 
-    async function fetchLiveFlights() {
-      if (!LIVE_API_ENDPOINT) {
-        flights = [...DEMO_FLIGHTS];
-        dataMode.textContent = "Demo";
-        lastUpdated.textContent =
-          "Demo mode • Connect LIVE_API_ENDPOINT to your authorised flight-data backend.";
-        renderFlights();
-        return;
-      }
+    let hasLiveData = false;
 
-      refreshBtn.disabled = true;
-      refreshBtn.textContent = "Refreshing…";
+    async function fetchLiveFlights() {
+      /*
+        SILENT BACKGROUND POLL
+        ----------------------
+        This runs every 10 seconds and never shows refresh activity in the UI.
+
+        Expected proxy response:
+        {
+          "flights": [ ...normalized Trip.com flight objects... ]
+        }
+
+        Your server-side endpoint should source the data from Trip.com and return JSON.
+      */
+
 
       try {
-        const response = await fetch(LIVE_API_ENDPOINT, {
+        const response = await fetch(TRIP_COM_PROXY_ENDPOINT, {
           method:"GET",
           headers:{ "Accept":"application/json" },
           cache:"no-store"
@@ -1334,7 +1318,7 @@
         const incomingFlights = Array.isArray(payload) ? payload : payload.flights;
 
         if (!Array.isArray(incomingFlights)) {
-          throw new Error("API response does not contain a flights array.");
+          throw new Error("Trip.com proxy response does not contain a flights array.");
         }
 
         flights = incomingFlights.map(item => ({
@@ -1404,39 +1388,23 @@
             ""
         }));
 
-        dataMode.textContent = "Live API";
-
-        const stamp = new Intl.DateTimeFormat("en-MY", {
-          timeZone:"Asia/Kuala_Lumpur",
-          hour:"2-digit",
-          minute:"2-digit",
-          second:"2-digit",
-          hour12:false
-        }).format(new Date());
-
-        lastUpdated.textContent = `Live data updated at ${stamp} MYT`;
+        hasLiveData = true;
         renderFlights();
-        showToast("Flight status refreshed.");
 
       } catch (error) {
-        console.error("Flight refresh error:", error);
-
-        dataMode.textContent = "Fallback";
-
-        if (!flights.length) {
+        /*
+          Keep the last known live data if a background request fails.
+          Before the first successful response, retain the built-in demo rows.
+        */
+        if (!hasLiveData && !flights.length) {
           flights = [...DEMO_FLIGHTS];
+          renderFlights();
         }
 
-        renderFlights();
-
-        lastUpdated.textContent =
-          "Live API unavailable • Showing the last available data.";
-
-        showToast("Unable to refresh the live flight feed.");
+        console.debug("Trip.com refresh unavailable:", error.message);
 
       } finally {
-        refreshBtn.disabled = false;
-        refreshBtn.textContent = "↻ Refresh";
+        // Background refresh completed silently.
       }
     }
 
@@ -1449,10 +1417,12 @@
     terminalFilter.addEventListener("change", renderFlights);
     statusFilter.addEventListener("change", renderFlights);
     sortSelect.addEventListener("change", renderFlights);
-    refreshBtn.addEventListener("click", fetchLiveFlights);
 
     setInterval(updateClock, 1000);
-    setInterval(fetchLiveFlights, AUTO_REFRESH_MS);
+    setInterval(() => {
+      fetchLiveFlights();
+    }, AUTO_REFRESH_MS);
+
 
 
     /* =========================================================

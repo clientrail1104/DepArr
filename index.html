@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -241,8 +242,7 @@
     ></div>
 
     <div class="note">
-        Opens the official Malaysia Airports KLIA Terminal 1
-        departure flight information service.
+        Opens the Trip.com KLIA live flight status service.
     </div>
 
 </div>
@@ -272,22 +272,14 @@
         }
 
 
-        /*
-         * Official KLIA Terminal 1
-         * Malaysia Airports departure page.
-         *
-         * Malaysia Airports currently performs
-         * its flight filtering within its own page.
-         */
-
         const targetUrl =
-            "https://airports.malaysiaairports.com.my/en/klia/flight-information/departures";
+            "https://www.trip.com/flights/status/kul/?&allianceid=14900&sid=4141571&ppcid=ckid-56229731667_adid-515041284145_akid-kwd-342372378891_adgid-119626675423&utm_source=google&utm_medium=cpc&utm_campaign=12766215807&gad_source=1&gad_campaignid=12766215807&gbraid=0AAAAABn2eFI48elC_6GPsErhTTF2zxoe4&gclid=Cj0KCQjw--7UBhCpARIsAGJBpth3wiRfvcug135vSGpTdTpcWbKH95ZgkO1JBsyw5HnHWtEZsNdWOcUaAqbJEALw_wcB";
 
 
         statusMessage.style.display = "block";
 
         statusMessage.textContent =
-            `Opening KLIA Terminal 1 departures. Search for "${query}" on the official flight board.`;
+            `Opening Trip.com KLIA flight status for "${query}".`;
 
 
         const newWindow =
@@ -297,11 +289,6 @@
                 "noopener,noreferrer"
             );
 
-
-        /*
-         * Fallback if the browser blocks
-         * the new tab.
-         */
 
         if (!newWindow) {
 
@@ -315,3 +302,4 @@
 
 </body>
 </html>
+```

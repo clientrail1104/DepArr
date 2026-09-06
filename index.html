@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>KLIA Terminal 1 Flight Tracker</title>
+
     <style>
         :root {
             --primary: #002f6c;
@@ -13,13 +15,27 @@
             --text: #333333;
         }
 
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Roboto,
+                Helvetica,
+                Arial,
+                sans-serif;
+
             background-color: var(--bg);
             color: var(--text);
+
             display: flex;
             justify-content: center;
             align-items: center;
+
             min-height: 100vh;
             margin: 0;
             padding: 20px;
@@ -28,24 +44,33 @@
         .tracker-card {
             background: var(--card-bg);
             padding: 30px;
+
             border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+
+            box-shadow:
+                0 10px 30px rgba(0, 0, 0, 0.08);
+
             width: 100%;
             max-width: 450px;
+
             text-align: center;
         }
 
         .logo-placeholder {
             color: var(--primary);
+
             font-size: 24px;
             font-weight: 800;
+
             letter-spacing: 1px;
+
             margin-bottom: 5px;
         }
 
         .subtitle {
             color: #666;
             font-size: 14px;
+
             margin-bottom: 25px;
         }
 
@@ -56,91 +81,236 @@
 
         label {
             display: block;
+
             font-weight: 600;
             font-size: 14px;
+
             margin-bottom: 8px;
+
             color: var(--primary);
         }
 
         input[type="text"] {
             width: 100%;
+
             padding: 12px 16px;
+
             border: 2px solid #e0e0e0;
             border-radius: 8px;
+
             font-size: 16px;
-            box-sizing: border-box;
-            transition: border-color 0.3s ease;
+
+            transition:
+                border-color 0.3s ease,
+                box-shadow 0.3s ease;
         }
 
         input[type="text"]:focus {
             outline: none;
+
             border-color: var(--primary);
+
+            box-shadow:
+                0 0 0 3px rgba(0, 47, 108, 0.1);
         }
 
         .btn-search {
             width: 100%;
+
             background-color: var(--primary);
             color: white;
+
             border: none;
+
             padding: 14px;
+
             font-size: 16px;
             font-weight: 600;
+
             border-radius: 8px;
+
             cursor: pointer;
-            transition: background-color 0.3s ease;
+
+            transition:
+                background-color 0.3s ease,
+                transform 0.15s ease;
         }
 
         .btn-search:hover {
             background-color: #001f4d;
         }
 
+        .btn-search:active {
+            transform: scale(0.99);
+        }
+
+        .btn-search:focus-visible {
+            outline: 3px solid rgba(0, 47, 108, 0.25);
+            outline-offset: 3px;
+        }
+
+        .status {
+            display: none;
+
+            margin-top: 16px;
+            padding: 12px;
+
+            background: #f4f7fb;
+
+            border-radius: 8px;
+
+            color: var(--primary);
+
+            font-size: 13px;
+            line-height: 1.5;
+
+            text-align: left;
+        }
+
         .note {
             margin-top: 15px;
+
             font-size: 11px;
-            color: #999;
-            line-height: 1.4;
+            color: #777;
+
+            line-height: 1.5;
+        }
+
+        @media (max-width: 480px) {
+
+            body {
+                padding: 14px;
+            }
+
+            .tracker-card {
+                padding: 24px 20px;
+            }
+
+            .logo-placeholder {
+                font-size: 21px;
+            }
         }
     </style>
 </head>
+
 <body>
 
 <div class="tracker-card">
-    <div class="logo-placeholder">KLIA TERMINAL 1</div>
-    <div class="subtitle">Live Departure Flight Status</div>
-    
-    <form id="flightForm" onsubmit="searchFlight(event)">
+
+    <div class="logo-placeholder">
+        KLIA TERMINAL 1
+    </div>
+
+    <div class="subtitle">
+        Live Departure Flight Status
+    </div>
+
+    <form id="flightForm">
+
         <div class="form-group">
-            <label for="flightInput">Flight Number or Destination</label>
-            <input 
-                type="text" 
-                id="flightInput" 
-                placeholder="e.g., MH123 or London" 
+
+            <label for="flightInput">
+                Flight Number or Destination
+            </label>
+
+            <input
+                type="text"
+                id="flightInput"
+                name="flight"
+                placeholder="e.g. MH123 or London"
+                autocomplete="off"
+                maxlength="50"
                 required
             >
+
         </div>
-        <button type="submit" class="btn-search">Search Live Status</button>
+
+        <button
+            type="submit"
+            class="btn-search"
+        >
+            Search Live Status
+        </button>
+
     </form>
 
+    <div
+        id="statusMessage"
+        class="status"
+        aria-live="polite"
+    ></div>
+
     <div class="note">
-        This tool securely redirects your query to the live database at malaysiaairports.com.my for verified gate, counter, and delay metrics.
+        Opens the official Malaysia Airports KLIA Terminal 1
+        departure flight information service.
     </div>
+
 </div>
 
 <script>
-    function searchFlight(event) {
+    const form =
+        document.getElementById("flightForm");
+
+    const input =
+        document.getElementById("flightInput");
+
+    const statusMessage =
+        document.getElementById("statusMessage");
+
+
+    form.addEventListener("submit", function (event) {
+
         event.preventDefault();
-        
-        // Get user input and clean it up
-        const query = document.getElementById('flightInput').value.trim();
-        
-        if (query) {
-            // Encode the parameters to safely pass through the URL string
-            const targetUrl = `https://malaysiaairports.com.my{encodeURIComponent(query)}`;
-            
-            // Open the specific filtered flight status list in a new tab
-            window.open(targetUrl, '_blank');
+
+
+        const query =
+            input.value.trim();
+
+
+        if (!query) {
+            return;
         }
-    }
+
+
+        /*
+         * Official KLIA Terminal 1
+         * Malaysia Airports departure page.
+         *
+         * Malaysia Airports currently performs
+         * its flight filtering within its own page.
+         */
+
+        const targetUrl =
+            "https://airports.malaysiaairports.com.my/en/klia/flight-information/departures";
+
+
+        statusMessage.style.display = "block";
+
+        statusMessage.textContent =
+            `Opening KLIA Terminal 1 departures. Search for "${query}" on the official flight board.`;
+
+
+        const newWindow =
+            window.open(
+                targetUrl,
+                "_blank",
+                "noopener,noreferrer"
+            );
+
+
+        /*
+         * Fallback if the browser blocks
+         * the new tab.
+         */
+
+        if (!newWindow) {
+
+            window.location.href =
+                targetUrl;
+
+        }
+
+    });
 </script>
 
 </body>

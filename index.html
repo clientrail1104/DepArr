@@ -72,7 +72,7 @@
       margin:0 auto;
       padding:10px 0;
       display:grid;
-      grid-template-rows:auto auto auto minmax(0,1fr);
+      grid-template-rows:auto auto minmax(0,1fr);
       gap:6px;
     }
 
@@ -90,12 +90,42 @@
     ========================= */
 
     .topbar{
-      min-height:52px;
+      min-height:66px;
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto auto;
+      align-items:center;
+      gap:12px;
+      padding:8px 10px;
+    }
+
+    .header-main{
+      min-width:0;
       display:flex;
       align-items:center;
-      justify-content:space-between;
-      gap:14px;
-      padding:0 4px;
+      gap:18px;
+    }
+
+    .header-summary-copy{
+      min-width:0;
+      padding-left:2px;
+    }
+
+    .header-subtext{
+      margin:2px 0 0;
+      color:var(--muted);
+      font-size:8px;
+      line-height:1.15;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width:560px;
+    }
+
+    .header-metrics{
+      display:grid;
+      grid-template-columns:52px 145px 135px;
+      align-items:stretch;
+      gap:6px;
     }
 
     .brand{
@@ -106,9 +136,9 @@
     }
 
     .brand-mark{
-      width:42px;
-      height:42px;
-      border-radius:14px;
+      width:38px;
+      height:38px;
+      border-radius:12px;
       display:grid;
       place-items:center;
       flex:0 0 auto;
@@ -116,7 +146,7 @@
       box-shadow:
         5px 5px 12px var(--shadow-dark),
         -5px -5px 12px var(--shadow-light);
-      font-size:20px;
+      font-size:18px;
     }
 
     .brand-copy{ min-width:0; }
@@ -132,7 +162,7 @@
 
     h1{
       margin:0;
-      font-size:clamp(18px, 2vw, 27px);
+      font-size:clamp(16px, 1.6vw, 23px);
       line-height:1;
       letter-spacing:-.035em;
     }
@@ -155,40 +185,13 @@
     .source-link:hover{ transform:translateY(-1px); }
 
     /* =========================
-       COMPACT SUMMARY
+       HEADER METRICS
     ========================= */
 
-    .summary{
-      min-height:50px;
-      display:grid;
-      grid-template-columns:minmax(310px, 1.5fr) repeat(3, minmax(100px, .5fr));
-      gap:5px;
-      padding:4px 5px;
-    }
-
-    .summary-main{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:8px;
-      min-width:0;
-      padding:1px 5px 1px 7px;
-    }
-
-
-    .summary-main p{
-      margin:2px 0 0;
-      color:var(--muted);
-      font-size:8px;
-      line-height:1.1;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
 
     .airport-chip{
-      width:50px;
-      height:42px;
+      width:52px;
+      height:46px;
       border-radius:12px;
       flex:0 0 auto;
       display:grid;
@@ -218,7 +221,7 @@
     .metric{
       border-radius:11px;
       padding:5px 8px;
-      min-height:42px;
+      min-height:46px;
       display:flex;
       flex-direction:column;
       justify-content:center;
@@ -689,11 +692,23 @@
     ========================= */
 
     @media (max-width:1050px){
-      .summary{
-        grid-template-columns:minmax(250px, 1.4fr) repeat(2, minmax(110px,.55fr));
+      .topbar{
+        grid-template-columns:minmax(0,1fr) auto;
       }
 
-      .metric:nth-of-type(3){
+      .header-main{
+        gap:12px;
+      }
+
+      .header-summary-copy{
+        display:none;
+      }
+
+      .header-metrics{
+        grid-template-columns:48px 120px 110px;
+      }
+
+      .source-link{
         display:none;
       }
 
@@ -711,7 +726,25 @@
         gap:6px;
       }
 
-      .topbar{ min-height:44px; }
+      .topbar{
+        min-height:54px;
+        grid-template-columns:minmax(0,1fr) auto;
+        gap:7px;
+        padding:6px 7px;
+      }
+
+      .header-main{
+        gap:8px;
+      }
+
+      .header-metrics{
+        grid-template-columns:44px 92px;
+        gap:5px;
+      }
+
+      .header-metrics .metric:last-child{
+        display:none;
+      }
 
       .brand-mark{
         width:38px;
@@ -733,29 +766,6 @@
         font-size:17px;
       }
 
-      .summary{
-        min-height:48px;
-        padding:4px;
-        grid-template-columns:1fr 90px;
-      }
-
-      .summary-main{
-        padding:3px 4px;
-      }
-
-      .summary-main h2{ font-size:20px; }
-      .summary-main p{ font-size:9px; max-width:68vw; }
-      .airport-chip{ display:none; }
-
-      .metric{
-        min-height:40px;
-        padding:5px;
-      }
-
-      .metric:nth-of-type(2),
-      .metric:nth-of-type(3){
-        display:none;
-      }
 
       .controls{ padding:5px; }
 
@@ -888,11 +898,6 @@
     }
 
     @media (max-height:700px){
-      .summary{ min-height:48px; }
-      .summary-main h2{ font-size:22px; }
-      .summary-main p{ font-size:9px; }
-      .metric{ min-height:38px; padding:5px 7px; }
-      .metric-value{ font-size:13px; }
       .controls{ padding:5px; }
       .field, .select{ height:30px; }
       .board-head{ padding:8px 12px; }
@@ -905,12 +910,41 @@
 <body>
   <main class="app">
 
-    <header class="topbar">
-      <div class="brand">
-        <div class="brand-mark" aria-hidden="true">✈</div>
-        <div class="brand-copy">
-          <p class="eyebrow">Kuala Lumpur International Airport</p>
-          <h1>Flight Tracker</h1>
+    <header class="topbar card">
+      <div class="header-main">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">✈</div>
+
+          <div class="brand-copy">
+            <p class="eyebrow">Kuala Lumpur International Airport</p>
+            <h1>Flight Tracker</h1>
+          </div>
+        </div>
+
+        <div class="header-summary-copy">
+          <p class="eyebrow">Departures • Terminal 1 Default</p>
+          <p class="header-subtext">
+            Departure, check-in, boarding, arrival gate and baggage details in one compact screen.
+          </p>
+        </div>
+      </div>
+
+      <div class="header-metrics">
+        <div class="airport-chip" aria-label="Kuala Lumpur airport code KUL">
+          <div>
+            <strong>KUL</strong>
+            <span>T1 / T2</span>
+          </div>
+        </div>
+
+        <div class="metric">
+          <span class="metric-label">Local time</span>
+          <strong class="metric-value" id="localTime">--:--</strong>
+        </div>
+
+        <div class="metric">
+          <span class="metric-label">Visible flights</span>
+          <strong class="metric-value" id="visibleFlights">0</strong>
         </div>
       </div>
 
@@ -922,38 +956,6 @@
         title="Open Trip.com KUL flight status"
       >Trip.com Status ↗</a>
     </header>
-
-    <section class="card summary">
-      <div class="summary-main">
-        <div>
-          <p class="eyebrow">Departures • Terminal 1 Default</p>
-          
-          <p>Departure, check-in, boarding, arrival gate and baggage details in one compact screen.</p>
-        </div>
-
-        <div class="airport-chip" aria-label="Kuala Lumpur airport code KUL">
-          <div>
-            <strong>KUL</strong>
-            <span>T1 / T2</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="metric">
-        <span class="metric-label">Local time</span>
-        <strong class="metric-value" id="localTime">--:--</strong>
-      </div>
-
-      <div class="metric">
-        <span class="metric-label">Date</span>
-        <strong class="metric-value" id="localDate">--</strong>
-      </div>
-
-      <div class="metric">
-        <span class="metric-label">Visible flights</span>
-        <strong class="metric-value" id="visibleFlights">0</strong>
-      </div>
-    </section>
 
     <section class="card controls" aria-label="Flight filters">
       <div class="control-grid">
@@ -1248,7 +1250,6 @@
     const sortSelect = document.getElementById("sortSelect");
 
     const localTime = document.getElementById("localTime");
-    const localDate = document.getElementById("localDate");
     const visibleFlights = document.getElementById("visibleFlights");
     const toast = document.getElementById("toast");
 
@@ -1460,12 +1461,6 @@
         hour12:false
       }).format(now);
 
-      localDate.textContent = new Intl.DateTimeFormat("en-MY", {
-        timeZone:"Asia/Kuala_Lumpur",
-        day:"2-digit",
-        month:"short",
-        year:"numeric"
-      }).format(now);
     }
 
 

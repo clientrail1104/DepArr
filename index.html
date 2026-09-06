@@ -405,9 +405,82 @@
       overflow-wrap:anywhere;
     }
 
-    tbody tr{ transition:.15s ease; }
-    tbody tr:hover{ background:rgba(255,255,255,.28); }
-    tbody tr:last-child td{ border-bottom:0; }
+    tbody{
+      transform-style:preserve-3d;
+    }
+
+    tbody tr{
+      transition:
+        background .25s ease,
+        opacity .25s ease;
+      transform-origin:center center;
+      backface-visibility:hidden;
+    }
+
+    tbody tr:hover{
+      background:rgba(255,255,255,.28);
+    }
+
+    tbody tr:last-child td{
+      border-bottom:0;
+    }
+
+    tbody tr.row-updated{
+      position:relative;
+      z-index:2;
+      animation:rowFlipUpdate 1.65s cubic-bezier(.22,.61,.36,1) both;
+    }
+
+    tbody tr.row-updated td{
+      animation:rowUpdateGlow 1.65s ease both;
+    }
+
+    @keyframes rowFlipUpdate{
+      0%{
+        transform:perspective(1200px) rotateX(0deg) scale(1);
+      }
+
+      28%{
+        transform:perspective(1200px) rotateX(72deg) scale(.985);
+      }
+
+      52%{
+        transform:perspective(1200px) rotateX(-9deg) scale(1.008);
+      }
+
+      72%{
+        transform:perspective(1200px) rotateX(4deg) scale(1.003);
+      }
+
+      100%{
+        transform:perspective(1200px) rotateX(0deg) scale(1);
+      }
+    }
+
+    @keyframes rowUpdateGlow{
+      0%{
+        background:rgba(255,255,255,0);
+      }
+
+      32%{
+        background:rgba(255,255,255,.66);
+      }
+
+      70%{
+        background:rgba(230,240,251,.48);
+      }
+
+      100%{
+        background:rgba(255,255,255,0);
+      }
+    }
+
+    @media (prefers-reduced-motion:reduce){
+      tbody tr.row-updated,
+      tbody tr.row-updated td{
+        animation:none !important;
+      }
+    }
 
     .time{
       font-size:clamp(10px, .9vw, 14px);
@@ -901,7 +974,7 @@
     <section class="card board">
       <div class="board-head">
         <div>
-          <h2 class="board-title">Complete Flight Information</h2>
+          <h2 class="board-title">Flight Information</h2>
         </div>
         <div class="live-pill">
             <span class="live-dot"></span>
@@ -1132,6 +1205,16 @@
 
     let flights = [...DEMO_FLIGHTS];
 
+    /*
+      Update tracking:
+      - previousFlightSnapshot stores the last successful live response.
+      - flightUpdateTimes keeps the most recent change time for each flight.
+      - pendingAnimatedKeys contains rows that should flip on the next render.
+    */
+    let previousFlightSnapshot = new Map();
+    const flightUpdateTimes = new Map();
+    let pendingAnimatedKeys = new Set();
+
     const flightRows = document.getElementById("flightRows");
     const searchInput = document.getElementById("searchInput");
     const terminalFilter = document.getElementById("terminalFilter");
@@ -1224,6 +1307,44 @@
       return Number(match[1]) * 60 + Number(match[2]);
     }
 
+    function getFlightKey(flight) {
+      const flightNumber = safeValue(flight.flight, "UNKNOWN")
+        .toUpperCase()
+        .replace(/\s+/g, "");
+
+      const destination = safeValue(flight.destination, "UNKNOWN")
+        .toUpperCase()
+        .replace(/\s+/g, " ");
+
+      return `${flightNumber}|${destination}`;
+    }
+
+    function getComparableFlight(flight) {
+      return {
+        time:safeValue(flight.time, "--:--"),
+        estimatedTime:safeValue(flight.estimatedTime, ""),
+        checkInTime:safeValue(flight.checkInTime),
+        flight:safeValue(flight.flight, "—"),
+        destination:safeValue(flight.destination, "—"),
+        airline:safeValue(flight.airline, "—"),
+        terminal:normalizeTerminal(flight.terminal),
+        checkInCounter:safeValue(flight.checkInCounter),
+        boardingGate:safeValue(flight.boardingGate),
+        arrivalGate:safeValue(flight.arrivalGate),
+        baggage:safeValue(flight.baggage),
+        status:normalizeStatus(flight.status)
+      };
+    }
+
+    function didFlightChange(previousFlight, nextFlight) {
+      if (!previousFlight) return true;
+
+      const before = getComparableFlight(previousFlight);
+      const after = getComparableFlight(nextFlight);
+
+      return Object.keys(after).some(key => before[key] !== after[key]);
+    }
+
     function showToast(message) {
       toast.textContent = message;
       toast.classList.add("show");
@@ -1298,6 +1419,15 @@
       });
 
       output.sort((a,b) => {
+        const aUpdated = flightUpdateTimes.get(getFlightKey(a)) || 0;
+        const bUpdated = flightUpdateTimes.get(getFlightKey(b)) || 0;
+
+        // Most recently changed flight always appears first.
+        if (aUpdated !== bUpdated) {
+          return bUpdated - aUpdated;
+        }
+
+        // For flights with the same update priority, keep the selected sort.
         if (sort === "TIME_DESC") {
           return minutesFromTime(b.time) - minutesFromTime(a.time);
         }
@@ -1332,8 +1462,12 @@
         return;
       }
 
+      const animatedKeys = new Set(pendingAnimatedKeys);
+
       flightRows.innerHTML = output.map(flight => {
         const status = normalizeStatus(flight.status);
+        const flightKey = getFlightKey(flight);
+        const rowClass = animatedKeys.has(flightKey) ? "row-updated" : "";
 
         const estimated = flight.estimatedTime
           ? `<span class="subcell">Est. ${escapeHtml(flight.estimatedTime)}</span>`
@@ -1342,7 +1476,7 @@
         const checkInTime = safeValue(flight.checkInTime);
 
         return `
-          <tr>
+          <tr class="${rowClass}" data-flight-key="${escapeHtml(flightKey)}">
             <td>
               <span class="time">${escapeHtml(safeValue(flight.time, "--:--"))}</span>
               ${estimated}
@@ -1386,6 +1520,9 @@
           </tr>
         `;
       }).join("");
+
+      // Flip animation is one-shot. New changes will add the key again.
+      pendingAnimatedKeys.clear();
     }
 
 
@@ -1399,7 +1536,7 @@
       /*
         SILENT BACKGROUND POLL
         ----------------------
-        This runs every 10 seconds and never shows refresh activity in the UI.
+        This runs every 10 seconds. Changed rows flip smoothly and move to the top.
 
         Expected proxy response:
         {
@@ -1428,7 +1565,7 @@
           throw new Error("Trip.com proxy response does not contain a flights array.");
         }
 
-        flights = incomingFlights.map(item => ({
+        const nextFlights = incomingFlights.map(item => ({
           time:
             item.time ??
             item.departureTime ??
@@ -1495,8 +1632,53 @@
             ""
         }));
 
+        const nextSnapshot = new Map(
+          nextFlights.map(flight => [getFlightKey(flight), flight])
+        );
+
+        const changedKeys = new Set();
+
+        if (hasLiveData) {
+          const updateMoment = Date.now();
+
+          for (const flight of nextFlights) {
+            const key = getFlightKey(flight);
+            const previousFlight = previousFlightSnapshot.get(key);
+
+            if (!previousFlight || didFlightChange(previousFlight, flight)) {
+              changedKeys.add(key);
+
+              // Tiny offset preserves source order when several flights change
+              // in the same refresh while still keeping them above older rows.
+              flightUpdateTimes.set(
+                key,
+                updateMoment - changedKeys.size
+              );
+            }
+          }
+        }
+
+        flights = nextFlights;
+        previousFlightSnapshot = nextSnapshot;
         hasLiveData = true;
+
+        if (changedKeys.size) {
+          pendingAnimatedKeys = changedKeys;
+        }
+
         renderFlights();
+
+        // Make the newest updates immediately visible if the user had scrolled down.
+        if (changedKeys.size) {
+          const tableWrap = document.querySelector(".table-wrap");
+
+          if (tableWrap) {
+            tableWrap.scrollTo({
+              top:0,
+              behavior:"smooth"
+            });
+          }
+        }
 
       } catch (error) {
         /*

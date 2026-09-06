@@ -1,26 +1,148 @@
-const API_URL = 'http://localhost:4000/api/live-flights';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KLIA T1 Real-Time Flight Board</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #1e293b;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        h1 { margin: 0; font-size: 24px; color: #38bdf8; }
+        .controls { display: flex; gap: 10px; }
+        button {
+            background-color: #1e293b;
+            color: white;
+            border: 1px solid #334155;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        button.active {
+            background-color: #0284c7;
+            border-color: #38bdf8;
+        }
+        button:hover { background-color: #334155; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            padding: 14px 20px;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+        }
+        th { background-color: #0f172a; color: #94a3b8; font-weight: 600; }
+        tr:hover { background-color: #273549; }
+        .status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-delayed { background-color: #7f1d1d; color: #fecaca; }
+        .status-boarded, .status-landed { background-color: #064e3b; color: #a7f3d0; }
+        .status-normal { background-color: #334155; color: #e2e8f0; }
+        .loading { text-align: center; padding: 4px; color: #94a3b8; }
+    </style>
+</head>
+<body>
 
-async function fetchAllData() {
-  const icon = document.getElementById('refresh-icon');
-  const banner = document.getElementById('error-banner');
-  if (icon) icon.classList.add('animate-spin');
+<div class="container">
+    <header>
+        <div>
+            <h1>KLIA Terminal 1 Live Flight Details</h1>
+            <p style="color: #94a3b8; margin: 5px 0 0 0;">Scraped Real-Time Data Pipeline</p>
+        </div>
+        <div class="controls">
+            <button id="btn-departures" class="active" onclick="fetchFlights('departures')">🛫 Departures</button>
+            <button id="btn-arrivals" onclick="fetchFlights('arrivals')">🛬 Arrivals</button>
+        </div>
+    </header>
 
-  try {
-    const res = await fetch(API_URL);
-    if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
-    
-    const json = await res.json();
+    <table id="flight-table">
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Flight No</th>
+                <th>Airline</th>
+                <th>Destination/Origin</th>
+                <th>Gate</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="flight-data">
+            <tr>
+                <td colspan="6" class="loading">Click a button or start backend server to fetch data...</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 
-    if (json.success) {
-      if (banner) banner.classList.add('hidden');
-      rawDepartures = json.data.departures || [];
-      rawArrivals = json.data.arrivals || [];
-      filterBothTables();
+<script>
+    async function fetchFlights(type) {
+        // Toggle Active Button Styles
+        document.getElementById('btn-departures').classList.toggle('active', type === 'departures');
+        document.getElementById('btn-arrivals').classList.toggle('active', type === 'arrivals');
+        
+        const tbody = document.getElementById('flight-data');
+        tbody.innerHTML = `<tr><td colspan="6" class="loading">Scraping live tracking records from server...</td></tr>`;
+        
+        try {
+            // Points to the Python local script running backend
+            const response = await fetch(`http://127.0.0{type}`);
+            const result = await response.json();
+            
+            if (!result.success || result.data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="loading">No active flights found or element layout updated on target page.</td></tr>`;
+                return;
+            }
+            
+            tbody.innerHTML = ''; // Clear loading indicator
+            
+            result.data.forEach(flight => {
+                let statusClass = 'status-normal';
+                if(flight.status.toLowerCase().includes('delay')) statusClass = 'status-delayed';
+                if(flight.status.toLowerCase().includes('board') || flight.status.toLowerCase().includes('land')) statusClass = 'status-boarded';
+
+                const row = `<tr>
+                    <td><strong>${flight.time}</strong></td>
+                    <td style="color: #38bdf8;">${flight.flight_no}</td>
+                    <td>${flight.airline}</td>
+                    <td>${flight.destination}</td>
+                    <td>${flight.gate}</td>
+                    <td><span class="status ${statusClass}">${flight.status}</span></td>
+                </tr>`;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+            
+        </div> catch (error) {
+            tbody.innerHTML = `<tr><td colspan="6" class="loading" style="color: #f87171;">Error connecting to scraping server. Ensure app.py is running.</td></tr>`;
+        }
     }
-  } catch (e) {
-    console.error('Fetch error:', e);
-    if (banner) banner.classList.remove('hidden');
-  } finally {
-    if (icon) setTimeout(() => icon.classList.remove('animate-spin'), 500);
-  }
-}
+</script>
+
+</body>
+</html>
